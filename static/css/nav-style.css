@@ -1,0 +1,9 @@
+/* Navbar text */
+.navbar .nav-link, .navbar .navbar-brand {
+    color: #AAAAAA;
+}
+
+/* Navbar text hover colour */
+.navbar .navbar-brand:hover, .navbar .navbar-nav .nav-link:hover {
+  color: #8885DA;
+}

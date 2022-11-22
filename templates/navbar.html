@@ -1,0 +1,59 @@
+
+<!-- Style in inlined -->
+<style>
+
+/* Navbar text */
+.navbar .nav-link, .navbar .navbar-brand {
+    color: #AAAAAA;
+}
+
+/* Navbar text hover colour */
+.navbar .navbar-brand:hover, .navbar .navbar-nav .nav-link:hover {
+  color: #8885DA;
+}
+
+</style>
+
+
+<nav class="navbar navbar-expand-lg" style="background-color: #1C1C1C;">
+    <div class="container-fluid">
+        
+        <!-- Logo -->
+        <a class="navbar-brand" href="/"><img src={{ url_for('static', filename="logo0.png" ) }} alt="jlist_logo"
+                width="151" height="34"></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Preceding options -->
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="navbar-nav">
+
+                <a class="nav-link" href="/about/">About</a>
+
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        More
+                    </a>
+                    <div class="dropdown-menu">
+                        <!-- TODO: ADD && IMPLEMENT -->
+                        <a class="dropdown-item" href="#">...</a>
+                        <hr class="dropdown-divider">
+                        </li>
+                        <a class="dropdown-item" href="#">...</a>
+                        <hr class="dropdown-divider">
+                        </li>
+                        <a class="dropdown-item" href="#">...</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOGIN/SIGNUP -->
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link" href="/login/">Sign in</a>
+        </div>
+    </div>
+</nav>
