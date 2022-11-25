@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<link rel="stylesheet" href={{ url_for('static', filename="css/style.css") }}>
+
+<style>
+    .vertical-center {
+  min-height: 100%;  /* Fallback for browsers do NOT support vh unit */
+  min-height: 80vh; /* These two lines are counted as one :-)       */
+
+  display: flex;
+  align-items: center;
+}
+</style>
+{% endblock %}
+
+{% block title %}
+<title>Sign Up</title>
+{% endblock %}
+
+{% block content %}
+<div class="container square-box d-flex justify-content-center vertical-center">
+    <form method="POST">
+        <div class="mb-3 default-colour">
+            <input type="email" class="form-control" id="email" name="email" placeholder="Email" />
+        </div>
+        <div class="mb-3 default-colour">
+            <input type="text" class="form-control" id="username" name="username" placeholder="Username" />
+        </div>
+        <div class="mb-3 default-colour">
+            <input type="password" class="form-control" id="password" name="password" placeholder="Password" />
+        </div>
+        <div class="mb-3 default-colour">
+            <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm Password" />
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+{% endblock %}
