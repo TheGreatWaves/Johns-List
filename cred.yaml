@@ -1,6 +1,6 @@
 # Add database credentials here
 
-mysql_host : ''
-mysql_user : ''
-mysql_password : ''
-mysql_db : ''
+mysql_host : 'localhost:13310'
+mysql_user : 'root'
+mysql_password : 'johnpass'
+mysql_db : 'johndb'
