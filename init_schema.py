@@ -4,10 +4,14 @@ This is ONLY responsible for creating tables.
 
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
+
 import yaml
 
 # Load credentials
 cred = yaml.load(open('cred.yaml'), Loader=yaml.Loader)
+
+# For Date
+from datetime import date
 
 # Intialize flask app
 app = Flask(__name__)
@@ -25,13 +29,13 @@ db = SQLAlchemy(app)
 
 # User table
 class user(db.Model):
-   user_id = db.Column('user_id', db.Integer, primary_key = True)
-   user_class = db.Column('user_class', db.CHAR(1), primary_key = True)
-   name = db.Column(db.String(20))
+   user_id = db.Column('user_id', db.Integer, primary_key = True, autoincrement=True)
+   user_class = db.Column('user_class', db.CHAR(1), primary_key = True, default='u')
+   name = db.Column(db.String(20), default='None')
    email = db.Column(db.String(255))
    username = db.Column(db.String(20))
    password = db.Column(db.String(255))
-   registered_date = db.Column(db.Date)
+   registered_date = db.Column(db.Date, default=date.today())
    profile_pic = db.Column(db.LargeBinary)
   
 
