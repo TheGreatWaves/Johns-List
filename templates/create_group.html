@@ -21,15 +21,14 @@
 {% block content %}
 <div class="container square-box d-flex justify-content-center vertical-center" >
     <form method="POST">
+
+        <!-- Group Name -->
         <div class="mb-3 default-colour">
-            <input type="email" class="form-control" id="email" name="email" placeholder="Email" size="30" />
-        </div>
-        <div class="mb-3 default-colour">
-            <input type="password" class="form-control" id="password" name="password" placeholder="Password" size="30" />
+            <input type="text" class="form-control" id="group_name" name="group_name" placeholder="Group Name" size="30" />
         </div>
 
-        <!-- Sign in button -->
-        <button type="submit" class="btn btn-primary" style="display: block; width: 100%;">Sign in</button>
+        <!-- Submit -->
+        <button type="submit" class="btn" style="display: block; width: 100%; background-color: #8885DA;">Create</button>
     </form>
 </div>
 {% endblock %}

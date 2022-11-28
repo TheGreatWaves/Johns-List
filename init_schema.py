@@ -23,17 +23,25 @@ app.config['SQLALCHEMY_ECHO'] = True # Comment to disable logs
 # Connect app's db to SQLAlchemy
 db = SQLAlchemy(app)
 
+
+
 #===================================#
 # INITILIAZE TABLES BELOW THIS LINE #
 #===================================#
+
+# Membership (many-to-many)
+group_member_table = db.Table('group_member',
+    db.Column('member_id', db.Integer, db.ForeignKey('user.user_id')),
+    db.Column('group_id', db.Integer, db.ForeignKey('group.group_id'))
+)
 
 # User table
 class User(db.Model):
    user_id = db.Column('user_id', db.Integer, primary_key = True, autoincrement=True)
    user_class = db.Column('user_class', db.CHAR(1), primary_key = True, default='u')
    name = db.Column(db.String(20), default='None')
-   email = db.Column(db.String(255))
-   username = db.Column(db.String(20))
+   email = db.Column(db.String(255), unique=True, nullable=False)
+   username = db.Column(db.String(20), unique=True, nullable=False)
    password = db.Column(db.String(255))
    registered_date = db.Column(db.Date, default=date.today())
    profile_pic = db.Column(db.LargeBinary)
@@ -43,6 +51,24 @@ def __init__(self, email, username, password):
     self.email = email
     self.username = username
     self.password = password
+
+
+
+# Group table
+class Group(db.Model):
+    group_id = db.Column('group_id', db.Integer, primary_key = True, autoincrement = True)
+    group_class = db.Column('group_class', db.CHAR(1), primary_key = True, default='g')
+    name = db.Column(db.String(20), unique=True, nullable=False)
+    size = db.Column(db.Integer, default=1)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))  
+
+    members = db.relationship('User',
+        secondary = group_member_table,
+        lazy='subquery',
+        backref=db.backref('groups', lazy=True))
+
+def __init__(self, name):
+    self.name = name
 
 #=============================#
 # END OF TABLE INITIALIZATION #

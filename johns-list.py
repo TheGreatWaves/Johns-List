@@ -14,7 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import yaml
 
 # App, db and tables
-from init_schema import app, db, User
+from init_schema import app, db, User, Group, group_member_table
 
 # Load credentials
 cred = yaml.load(open('cred.yaml'), Loader=yaml.Loader)
@@ -65,6 +65,7 @@ def signup():
         
         hashed_pw = generate_password_hash(pw)
         
+        # TODO: Ensure that the new user isn't using an existing email!
         new_user = User(email=email, username=username, password=hashed_pw)
         
         db.session.add(new_user)
@@ -116,17 +117,56 @@ def signout():
     return redirect('/')
 
 # User profile page
-@app.route('/profile/<username>', methods=['GET', 'POST'])
+@app.route('/profile/<username>', methods=['GET'])
 def profile(username):
 
     # Find user using username
-    user = User.query.filter_by(username=username).first()
+    owner = User.query.filter_by(username=username).first()
 
-    if user is None:
+    if owner is None:
         flash("User not found", 'danger')
         return redirect('/')
 
-    return render_template('profile.html', user=user)
+    user_groups = Group.query.join(group_member_table).join(User).filter((group_member_table.c.member_id == User.user_id) & (group_member_table.c.group_id == Group.group_id)).filter(User.user_id == owner.user_id).all()
+
+
+    return render_template('profile.html', user=owner, groups=user_groups)
+
+@app.route('/create_group/', methods=['GET', 'POST'])
+def create_group():
+    if request.method == 'GET':
+        return render_template('create_group.html')
+    elif request.method == 'POST':
+
+        group_form = request.form
+
+        group_name = group_form['group_name']
+
+        new_group = Group(name=group_name)
+        user = User.query.filter_by(username=session['username']).first()
+
+        new_group.members.append(user)
+
+        db.session.add(new_group)
+        db.session.commit()
+
+        flash(f'New group [{group_name}] successfully created!', 'success')
+        return redirect('/profile/' + session['username'])
+    else:
+        return render_template('create_group.html')
+  
+# Group
+@app.route('/group/<group_name>', methods=['GET'])
+def group(group_name):
+
+    # Find user using username
+    group = Group.query.filter_by(name = group_name).first()
+
+    if group is None:
+        flash("Group not found", 'danger')
+        return redirect('/')
+
+    return render_template('group.html', group=group)
     
 #=========================================#
 #    END OF ENTRY POINT INITIALIZATION    #
