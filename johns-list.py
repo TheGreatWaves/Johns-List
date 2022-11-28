@@ -4,7 +4,7 @@ Add and implement entry points here (We could move them out later if desired.)
 """
 
 # Flask
-from flask import Flask, render_template, request, redirect, flash
+from flask import Flask, render_template, request, redirect, flash, session
 from flask_sqlalchemy import SQLAlchemy
 
 # For hashing
@@ -14,7 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import yaml
 
 # App, db and tables
-from init_schema import app, db, user
+from init_schema import app, db, User
 
 # Load credentials
 cred = yaml.load(open('cred.yaml'), Loader=yaml.Loader)
@@ -65,7 +65,7 @@ def signup():
         
         hashed_pw = generate_password_hash(pw)
         
-        new_user = user(email=email, username=username, password=hashed_pw)
+        new_user = User(email=email, username=username, password=hashed_pw)
         
         db.session.add(new_user)
         db.session.commit()
@@ -84,14 +84,20 @@ def signin():
         user_email = loginForm['email']
         
         # Query for user entry
-        found = user.query.filter_by(email=user_email).first()
+        found = User.query.filter_by(email=user_email).first()
         
         # Try finding
         if found is not None:
             
             # Found, check password
             if check_password_hash(found.password, loginForm['password']):
-                flash("Log In successful",'success')
+
+                # Log session info
+                session['login'] = True
+                session['username'] = found.username
+
+
+                flash('Welcome ' + session['username'] + '.','success')
                 return redirect('/')
             else:
                 flash("Incorrect credentials", 'danger')
@@ -102,7 +108,26 @@ def signin():
     
     return render_template('signin.html')
 
+# Sign out
+@app.route('/signout/')
+def signout():
+    session.clear()
+    flash("You have been logged out", 'info')
+    return redirect('/')
 
+# User profile page
+@app.route('/profile/<username>', methods=['GET', 'POST'])
+def profile(username):
+
+    # Find user using username
+    user = User.query.filter_by(username=username).first()
+
+    if user is None:
+        flash("User not found", 'danger')
+        return redirect('/')
+
+    return render_template('profile.html', user=user)
+    
 #=========================================#
 #    END OF ENTRY POINT INITIALIZATION    #
 #=========================================#

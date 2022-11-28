@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<link rel="stylesheet" href={{ url_for('static', filename="css/style.css") }}>
+{% endblock %}
+
+{% block title %}
+<title>JohnsList</title>
+{% endblock %}
+
+<!-- Render User's profile here -->
+{% block content %}
+
+<h1 class="default-colour">{{ user.username }}</h1>
+
+{% endblock %}

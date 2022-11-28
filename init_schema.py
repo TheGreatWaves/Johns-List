@@ -28,7 +28,7 @@ db = SQLAlchemy(app)
 #===================================#
 
 # User table
-class user(db.Model):
+class User(db.Model):
    user_id = db.Column('user_id', db.Integer, primary_key = True, autoincrement=True)
    user_class = db.Column('user_class', db.CHAR(1), primary_key = True, default='u')
    name = db.Column(db.String(20), default='None')
