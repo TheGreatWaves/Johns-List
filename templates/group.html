@@ -10,4 +10,32 @@
 
 {% block content %}
 <h1 class="default-colour">{{ group.name }}</h1>
+
+<div>
+    <a class="btn btn-dark" href="{{ url_for('join_group', group_name=group.name) }}" role="button">Join</a>
+</div>
+
+<div class="card" style="width: 18rem; background-color: #0E0E0E;">
+    <div class="card-header text-center" style="background-color: #8885DA; color: #0E0E0E">
+        Members
+    </div>
+    <ul class="list-group list-group-flush" style="background-color: #0E0E0E">
+        {% if members %}
+        {% for member in members %}
+        <li class="list-group-item" style="background-color: #53518e">
+            <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
+                <a class="btn" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E"
+                    href="{{ url_for('profile', username=member.username) }}" role="button">{{ member.username }}</a>
+            </div>
+        </li>
+        {% endfor %}
+        {% else %}
+        <li class="list-group-item" style="background-color: #31003d">
+            <div class="shadow rounded" style="width: 100%; display: block; background-color: #545282">
+                <a class="btn" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E">No Member!</a>
+            </div>
+        </li>
+        {% endif %}
+    </ul>
+</div>
 {% endblock %}

@@ -12,21 +12,22 @@
 {% block content %}
 
 <h1 class="default-colour">{{ user.username }}</h1>
-<!-- <a href="{{ url_for('create_group') }}" style="margin: 20px 40px 0px 40px;">Create Group</a> -->
 
+{% if is_owner %}
 <div>
     <a class="btn btn-dark" href="{{ url_for('create_group') }}" role="button">Create Group</a>
+    <a class="btn btn-dark" href="{{ url_for('search_group') }}" role="button">Search Group</a>
 </div>
-
+{% endif %}
 
 <div class="card" style="width: 18rem; background-color: #0E0E0E;">
-    <div class="card-header text-center" style="background-color: #400050; color: #AAAAAA">
-        My Groups
+    <div class="card-header text-center" style="background-color: #8885DA; color: #0E0E0E">
+        Groups
     </div>
     <ul class="list-group list-group-flush" style="background-color: #0E0E0E">
         {% if groups %}
         {% for group in groups %}
-        <li class="list-group-item" style="background-color: #400050">
+        <li class="list-group-item" style="background-color: #53518e">
             <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
                 <a class="btn" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E"
                     href="{{ url_for('group', group_name=group.name) }}" role="button">{{ group.name }}</a>
@@ -35,7 +36,7 @@
         {% endfor %}
         {% else %}
         <li class="list-group-item" style="background-color: #31003d">
-            <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
+            <div class="shadow rounded" style="width: 100%; display: block; background-color: #545282">
                 <a class="btn" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E">No Groups!</a>
             </div>
         </li>

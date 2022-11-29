@@ -4,7 +4,7 @@ Add and implement entry points here (We could move them out later if desired.)
 """
 
 # Flask
-from flask import Flask, render_template, request, redirect, flash, session
+from flask import Flask, render_template, request, redirect, flash, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 
 # For hashing
@@ -121,16 +121,17 @@ def signout():
 def profile(username):
 
     # Find user using username
-    owner = User.query.filter_by(username=username).first()
+    user = User.query.filter_by(username=username).first()
 
-    if owner is None:
+    if user is None:
         flash("User not found", 'danger')
         return redirect('/')
 
-    user_groups = Group.query.join(group_member_table).join(User).filter((group_member_table.c.member_id == User.user_id) & (group_member_table.c.group_id == Group.group_id)).filter(User.user_id == owner.user_id).all()
+    user_groups = Group.query.join(group_member_table).join(User).filter((group_member_table.c.member_id == User.user_id) & (group_member_table.c.group_id == Group.group_id)).filter(User.user_id == user.user_id).order_by(Group.name).all()
 
 
-    return render_template('profile.html', user=owner, groups=user_groups)
+
+    return render_template('profile.html', user=user, groups=user_groups, is_owner = (session['username'] == user.username))
 
 @app.route('/create_group/', methods=['GET', 'POST'])
 def create_group():
@@ -154,7 +155,28 @@ def create_group():
         return redirect('/profile/' + session['username'])
     else:
         return render_template('create_group.html')
-  
+
+# Join Group
+@app.route('/group/<group_name>/join')
+def join_group(group_name):
+    
+    group = Group.query.filter_by(name=group_name).first()
+    user = User.query.filter_by(username=session['username']).first()
+
+    in_group = Group.query.join(group_member_table).join(User).filter((group_member_table.c.member_id == user.user_id) & (group_member_table.c.group_id == group.group_id)).first()
+
+    if in_group is not None:
+        flash('Already in group!', 'danger')
+        return redirect('/')
+
+    group.members.append(user)
+    db.session.commit()
+
+    flash('Joined group!', 'success')
+
+    # TODO: Redirect back to the group page!
+    return redirect('/')
+
 # Group
 @app.route('/group/<group_name>', methods=['GET'])
 def group(group_name):
@@ -166,7 +188,22 @@ def group(group_name):
         flash("Group not found", 'danger')
         return redirect('/')
 
-    return render_template('group.html', group=group)
+    members = User.query.join(group_member_table).join(Group).filter((group_member_table.c.member_id == User.user_id) & (group_member_table.c.group_id == Group.group_id)).filter(Group.group_id == group.group_id).all()
+
+    return render_template('group.html', group=group, members=members)
+
+# Search Group
+@app.route('/search_group/', methods=['GET', 'POST'])
+def search_group():
+    if request.method == 'GET':
+        return render_template('search_group.html')
+    elif request.method == 'POST':
+
+        group_name = request.form['group_name']
+        search_name = "%{}%".format(group_name)
+        groups = Group.query.filter(Group.name.like(search_name)).order_by(Group.name).all()
+        
+        return render_template('search_group.html', groups=groups)
     
 #=========================================#
 #    END OF ENTRY POINT INITIALIZATION    #

@@ -23,7 +23,7 @@
   <body style="background-color: #0E0E0E;">
     <!-- NAV BAR -->
     {% include 'navbar.html' %}
-    
+
     {% for category, message in get_flashed_messages(with_categories=true) %}
     <div class="alert alert-{{category}} alert-dismissible fade show" role="alert" style="margin: 20px 20px 20px 20px;">
       {{ message }}
