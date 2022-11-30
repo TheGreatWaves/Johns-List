@@ -74,9 +74,10 @@ def __init__(self, name):
 # END OF TABLE INITIALIZATION #
 #=============================#
 
-# Initialize all tables
+# Initialize all tables (Note this will also drop all previously existing tables)
 if __name__ == '__main__':  
     with app.app_context():
+        db.drop_all()
         db.create_all()
 
 

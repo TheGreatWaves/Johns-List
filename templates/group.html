@@ -11,10 +11,16 @@
 {% block content %}
 <h1 class="default-colour">{{ group.name }}</h1>
 
+<!-- If user is already in the group, they will see 'join', otherwise, they will see 'leave' -->
 <div>
+    {% if is_member %}
+    <a class="btn btn-dark" href="{{ url_for('leave_group', group_name=group.name) }}" role="button">Leave</a>
+    {% else %}
     <a class="btn btn-dark" href="{{ url_for('join_group', group_name=group.name) }}" role="button">Join</a>
+    {% endif %}
 </div>
 
+<!-- I don't really know what I'm doing haha -->
 <div class="card" style="width: 18rem; background-color: #0E0E0E;">
     <div class="card-header text-center" style="background-color: #8885DA; color: #0E0E0E">
         Members
@@ -30,8 +36,8 @@
         </li>
         {% endfor %}
         {% else %}
-        <li class="list-group-item" style="background-color: #31003d">
-            <div class="shadow rounded" style="width: 100%; display: block; background-color: #545282">
+        <li class="list-group-item" style="background-color: #53518e">
+            <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
                 <a class="btn" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E">No Member!</a>
             </div>
         </li>

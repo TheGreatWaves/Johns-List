@@ -139,6 +139,8 @@ def create_group():
         return render_template('create_group.html')
     elif request.method == 'POST':
 
+        # TODO: Dupes can be added, fix this.
+
         group_form = request.form
 
         group_name = group_form['group_name']
@@ -163,9 +165,12 @@ def join_group(group_name):
     group = Group.query.filter_by(name=group_name).first()
     user = User.query.filter_by(username=session['username']).first()
 
-    in_group = Group.query.join(group_member_table).join(User).filter((group_member_table.c.member_id == user.user_id) & (group_member_table.c.group_id == group.group_id)).first()
+    in_group = Group.query\
+        .join(group_member_table).join(User)\
+        .filter((group_member_table.c.member_id == user.user_id) & (group_member_table.c.group_id == group.group_id))\
+        .first()
 
-    if in_group is not None:
+    if in_group:
         flash('Already in group!', 'danger')
         return redirect('/')
 
@@ -174,6 +179,31 @@ def join_group(group_name):
 
     flash('Joined group!', 'success')
 
+    # TODO: Redirect back to the group page!
+    return redirect('/')
+
+# Leave Group
+@app.route('/group/<group_name>/leave')
+def leave_group(group_name):
+    
+    group = Group.query.filter_by(name=group_name).first()
+    user = User.query.filter_by(username=session['username']).first()
+
+    in_group = Group.query\
+        .join(group_member_table).join(User)\
+        .filter((group_member_table.c.member_id == user.user_id) & (group_member_table.c.group_id == group.group_id))\
+        .first()
+
+    # User is in group, remove them.
+    if in_group:
+        group.members.remove(user)
+        db.session.commit()
+        flash('Successfully left group!', 'success')
+        return redirect('/')
+
+    
+    flash('Not in group!', 'danger')
+    
     # TODO: Redirect back to the group page!
     return redirect('/')
 
@@ -188,9 +218,19 @@ def group(group_name):
         flash("Group not found", 'danger')
         return redirect('/')
 
-    members = User.query.join(group_member_table).join(Group).filter((group_member_table.c.member_id == User.user_id) & (group_member_table.c.group_id == Group.group_id)).filter(Group.group_id == group.group_id).all()
+    # Get list of all members
+    members_q = User.query.join(group_member_table)\
+        .join(Group)\
+        .filter((group_member_table.c.member_id == User.user_id) & (group_member_table.c.group_id == Group.group_id))\
+        .filter(Group.group_id == group.group_id)
+        
+    members = members_q.all()
+    
+    # Find out if current user is in the member list
+    user = User.query.filter_by(username=session['username']).first()
+    is_member = members_q.filter(User.user_id == user.user_id).first()
 
-    return render_template('group.html', group=group, members=members)
+    return render_template('group.html', group=group, members=members, is_member=is_member)
 
 # Search Group
 @app.route('/search_group/', methods=['GET', 'POST'])
