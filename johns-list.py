@@ -32,6 +32,25 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:johnpass@localhost:13310/j
 # Comment to disable logs
 app.config['SQLALCHEMY_ECHO'] = True
 
+
+#=========================================#
+#       Short cute simple QoL utils       #
+#=========================================#
+
+# Check if user is logged in
+def logged_in():
+    return 'login' in session
+
+# No need to perform query, just get username
+def whoami_username():
+    return session.get('username')
+
+# Return current user
+def whoami():
+    if not logged_in():
+        return None
+    return User.query.filter_by(username=session['username']).first()
+
 #=========================================#
 # INITILIAZE ENTRY POINTS BELOW THIS LINE #
 #=========================================#
@@ -51,30 +70,39 @@ def about():
 def signup():
     if request.method == 'GET':
         return render_template('signup.html')
+
     elif request.method == 'POST':
         userDetails = request.form
         
         # Check that passwords matches
         if userDetails['password'] != userDetails['confirm_password']:
-            flash('Password does not match.', 'danger')
+            flash('Password does not match', 'danger')
             return render_template('signup.html')
         
         email = userDetails['email']
         username = userDetails['username']
+
+        if email == "":
+            flash('Email can not be blank', 'danger')
+            return render_template('signup.html')
+
+        if username == "":
+            flash('Username can not be blank', 'danger')
+            return render_template('signup.html')
 
         existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
 
         # If user already exists...
         if existing_user:
 
-            # Note: elif is used to not bombard
+            # Note: elif is used to prevent bombarding with flush
 
             # Email is in use
             if existing_user.email == email:
-                flash('Email already in use.', 'danger')
+                flash('Email already in use', 'danger')
             # Usernname is in use
             elif existing_user.username == username:
-                flash('Username unavailable.', 'danger')
+                flash('Username unavailable', 'danger')
             
             return render_template('signup.html')
     
@@ -83,20 +111,29 @@ def signup():
         hashed_pw = generate_password_hash(pw)
         
         new_user = User(email=email, username=username, password=hashed_pw)
-        
         db.session.add(new_user)
         db.session.commit()
         
-        flash('Successfully registered.', 'success')
+        flash('Successfully registered', 'success')
+
+        # Redirect user to sign in page upon success
         return redirect('/signin/')    
+
     return render_template('signup.html')
 
 # Sign in
 @app.route("/signin/", methods=['GET', 'POST'])
 def signin():
     if request.method == 'GET':
+        
+        # Safe guard
+        if logged_in():
+            return redirect('/')
+
         return render_template('signin.html')
+
     elif request.method == 'POST':
+
         loginForm = request.form
         user_input = loginForm['email_or_user']
         
@@ -112,13 +149,22 @@ def signin():
                 # Log session info
                 session['login'] = True
                 session['username'] = found.username
-                flash('Welcome ' + session['username'] + '.','success')
+                flash('Welcome ' + session['username'],'success')
 
+                # If we were redirected to login, we want to 
+                # redirect back to where-ever we were sent from
+                if 'last_page' in session:
+                    return redirect(session['last_page'])
+
+                # Otherwise just go to home page
                 return redirect('/')
             else:
+                # Wrong password
                 flash("Incorrect credentials", 'danger')
                 return render_template('signin.html')
+
         else:
+            # No existing user with given email/username
             flash('User not found', 'danger')
             return render_template('signin.html')
     
@@ -138,89 +184,125 @@ def profile(username):
     # Find user using username
     user = User.query.filter_by(username=username).first()
 
+    # User not found
     if user is None:
         flash("User not found", 'danger')
         return redirect('/')
 
-    user_groups = Group.query.join(group_member_table).join(User).filter((group_member_table.c.member_id == User.user_id) & (group_member_table.c.group_id == Group.group_id)).filter(User.user_id == user.user_id).order_by(Group.name).all()
+    # Get all groups the user is in
+    user_groups = user.get_all_groups()\
+                    .order_by(Group.name)\
+                    .all()
 
+    is_owner = whoami_username() == user.username
 
-
-    return render_template('profile.html', user=user, groups=user_groups, is_owner = (session['username'] == user.username))
+    return render_template('profile.html', user=user, groups=user_groups, is_owner=is_owner)
 
 @app.route('/create_group/', methods=['GET', 'POST'])
 def create_group():
     if request.method == 'GET':
+
+        # Redirect to login if not
+        if not logged_in():
+            session['last_page'] = url_for('create_group')
+            return redirect(url_for('signin'))
+        
         return render_template('create_group.html')
+
     elif request.method == 'POST':
 
-        # TODO: Dupes can be added, fix this.
+        group_name = request.form['group_name']
+        
+        # Check if group name is valid
+        if group_name == "":
+            flash('Group name can not be empty', 'danger')
+            return redirect('/create_group/')
 
-        group_form = request.form
+        found = Group.query.filter_by(name=group_name).first()
+       
+        # If found, group name has been taken
+        if found:
+            flash('Group name already taken', 'danger')
+            return redirect('/create_group/')
 
-        group_name = group_form['group_name']
-
+        # Create the new group
         new_group = Group(name=group_name)
-        user = User.query.filter_by(username=session['username']).first()
+    
+        # Add current user to the newly created group
+        new_group.members.append(whoami())
 
-        new_group.members.append(user)
-
+        # Save changes
         db.session.add(new_group)
         db.session.commit()
 
         flash(f'New group [{group_name}] successfully created!', 'success')
-        return redirect('/profile/' + session['username'])
+
+        # Redirect to the new group's page
+        return redirect(url_for('group', group_name=group_name))
     else:
         return render_template('create_group.html')
 
 # Join Group
+# NOTE: This url should be only available
+#       when the user IS logged in.
 @app.route('/group/<group_name>/join')
 def join_group(group_name):
     
-    group = Group.query.filter_by(name=group_name).first()
-    user = User.query.filter_by(username=session['username']).first()
+    if not logged_in():
+        session['last_page'] = url_for('join_group', group_name=group_name)
+        return redirect(url_for('signin'))
 
-    in_group = Group.query\
-        .join(group_member_table).join(User)\
-        .filter((group_member_table.c.member_id == user.user_id) & (group_member_table.c.group_id == group.group_id))\
-        .first()
+    # Get target group and current user
+    group = Group.query.filter_by(name=group_name).first()
+    user = whoami()
+    
+    # Check if we're in group
+    in_group = group.has_member(user.user_id)
 
     if in_group:
         flash('Already in group!', 'danger')
-        return redirect('/')
+        return redirect(url_for('group', group_name=group_name))
 
     group.members.append(user)
+    group.size += 1
     db.session.commit()
 
     flash('Joined group!', 'success')
 
-    # TODO: Redirect back to the group page!
-    return redirect('/')
+    return redirect(url_for('group', group_name=group_name))
 
 # Leave Group
 @app.route('/group/<group_name>/leave')
 def leave_group(group_name):
     
-    group = Group.query.filter_by(name=group_name).first()
-    user = User.query.filter_by(username=session['username']).first()
+    group_q = Group.query.filter_by(name=group_name)
+    group = group_q.first()
+    user = whoami()
 
-    in_group = Group.query\
-        .join(group_member_table).join(User)\
-        .filter((group_member_table.c.member_id == user.user_id) & (group_member_table.c.group_id == group.group_id))\
-        .first()
+    # Check if we're in the group
+    in_group = group.has_member(user.user_id)
 
     # User is in group, remove them.
     if in_group:
         group.members.remove(user)
+        group.size -= 1
         db.session.commit()
-        flash('Successfully left group!', 'success')
-        return redirect('/')
+        
+        # Group has no members, disband.
+        if group.size <= 0:
+            group_q.delete()
+            db.session.commit()
+            flash('Group disbanded!', 'success')
+            return redirect('/')
 
+        flash('Successfully left group!', 'success')
+
+        return redirect(url_for('group', group_name=group_name))
     
+    # We're trying to leave, but we
+    # are not in the group
     flash('Not in group!', 'danger')
-    
-    # TODO: Redirect back to the group page!
-    return redirect('/')
+    return redirect(url_for('group', group_name=group_name))
 
 # Group
 @app.route('/group/<group_name>', methods=['GET'])
@@ -234,16 +316,17 @@ def group(group_name):
         return redirect('/')
 
     # Get list of all members
-    members_q = User.query.join(group_member_table)\
-        .join(Group)\
-        .filter((group_member_table.c.member_id == User.user_id) & (group_member_table.c.group_id == Group.group_id))\
-        .filter(Group.group_id == group.group_id)
-        
+    members_q = group.get_all_members()
     members = members_q.all()
     
+    if not logged_in():
+        return render_template('group.html', group=group, members=members, is_member=None, unknown_user=True)
+
+
     # Find out if current user is in the member list
-    user = User.query.filter_by(username=session['username']).first()
-    is_member = members_q.filter(User.user_id == user.user_id).first()
+    # Note: I didn't use Group.has_member(uid) because this
+    #       query should be much cheaper to compute.
+    is_member = members_q.filter(User.user_id == whoami().user_id).first()
 
     return render_template('group.html', group=group, members=members, is_member=is_member)
 

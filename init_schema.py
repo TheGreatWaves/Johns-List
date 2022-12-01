@@ -37,20 +37,26 @@ group_member_table = db.Table('group_member',
 
 # User table
 class User(db.Model):
-   user_id = db.Column('user_id', db.Integer, primary_key = True, autoincrement=True)
-   user_class = db.Column('user_class', db.CHAR(1), primary_key = True, default='u')
-   name = db.Column(db.String(20), default='None')
-   email = db.Column(db.String(255), unique=True, nullable=False)
-   username = db.Column(db.String(20), unique=True, nullable=False)
-   password = db.Column(db.String(255))
-   registered_date = db.Column(db.Date, default=date.today())
-   profile_pic = db.Column(db.LargeBinary)
-  
+    user_id = db.Column('user_id', db.Integer, primary_key = True, autoincrement=True)
+    user_class = db.Column('user_class', db.CHAR(1), primary_key = True, default='u')
+    name = db.Column(db.String(20), default='None')
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    password = db.Column(db.String(255))
+    registered_date = db.Column(db.Date, default=date.today())
+    profile_pic = db.Column(db.LargeBinary)
+    
+    def __init__(self, email, username, password):
+        self.email = email
+        self.username = username
+        self.password = password
 
-def __init__(self, email, username, password):
-    self.email = email
-    self.username = username
-    self.password = password
+    def get_all_groups(self):
+        return Group.query.join(group_member_table)\
+            .join(User)\
+            .filter((group_member_table.c.member_id == User.user_id) & (group_member_table.c.group_id == Group.group_id))\
+            .filter(User.user_id == self.user_id)
+
 
 
 
@@ -67,8 +73,27 @@ class Group(db.Model):
         lazy='subquery',
         backref=db.backref('groups', lazy=True))
 
-def __init__(self, name):
-    self.name = name
+    def get_member_count(self):
+        return Group.query.join(Group.members).filter(Group.group_id == self.group_id).count()
+
+
+    def get_all_members(self):
+        return User.query.join(group_member_table)\
+            .join(Group)\
+            .filter((group_member_table.c.member_id == User.user_id) & (group_member_table.c.group_id == Group.group_id))\
+            .filter(Group.group_id == self.group_id)
+
+    def has_member(self, uid):
+        member = Group.query.join(group_member_table).join(User)\
+            .filter((group_member_table.c.member_id == uid) & (group_member_table.c.group_id == self.group_id))\
+            .first() 
+            
+        return member is not None
+
+    def __init__(self, name):
+        self.name = name
+
+
 
 #=============================#
 # END OF TABLE INITIALIZATION #

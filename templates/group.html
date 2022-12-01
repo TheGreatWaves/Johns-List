@@ -12,6 +12,8 @@
 <h1 class="default-colour">{{ group.name }}</h1>
 
 <!-- If user is already in the group, they will see 'join', otherwise, they will see 'leave' -->
+
+{% if not unknown_user %}
 <div>
     {% if is_member %}
     <a class="btn btn-dark" href="{{ url_for('leave_group', group_name=group.name) }}" role="button">Leave</a>
@@ -19,6 +21,7 @@
     <a class="btn btn-dark" href="{{ url_for('join_group', group_name=group.name) }}" role="button">Join</a>
     {% endif %}
 </div>
+{% endif %}
 
 <!-- I don't really know what I'm doing haha -->
 <div class="card" style="width: 18rem; background-color: #0E0E0E;">
