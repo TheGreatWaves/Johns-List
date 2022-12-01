@@ -61,18 +61,34 @@ def signup():
         
         email = userDetails['email']
         username = userDetails['username']
+
+        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+
+        # If user already exists...
+        if existing_user:
+
+            # Note: elif is used to not bombard
+
+            # Email is in use
+            if existing_user.email == email:
+                flash('Email already in use.', 'danger')
+            # Usernname is in use
+            elif existing_user.username == username:
+                flash('Username unavailable.', 'danger')
+            
+            return render_template('signup.html')
+    
+
         pw = userDetails['password']
-        
         hashed_pw = generate_password_hash(pw)
         
-        # TODO: Ensure that the new user isn't using an existing email!
         new_user = User(email=email, username=username, password=hashed_pw)
         
         db.session.add(new_user)
         db.session.commit()
         
         flash('Successfully registered.', 'success')
-        return redirect('/')    
+        return redirect('/signin/')    
     return render_template('signup.html')
 
 # Sign in
@@ -82,10 +98,10 @@ def signin():
         return render_template('signin.html')
     elif request.method == 'POST':
         loginForm = request.form
-        user_email = loginForm['email']
+        user_input = loginForm['email_or_user']
         
         # Query for user entry
-        found = User.query.filter_by(email=user_email).first()
+        found = User.query.filter((User.email == user_input) | (User.username == user_input)).first()
         
         # Try finding
         if found is not None:
@@ -96,9 +112,8 @@ def signin():
                 # Log session info
                 session['login'] = True
                 session['username'] = found.username
-
-
                 flash('Welcome ' + session['username'] + '.','success')
+
                 return redirect('/')
             else:
                 flash("Incorrect credentials", 'danger')

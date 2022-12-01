@@ -5,8 +5,8 @@
 
 <style>
     .vertical-center {
-  min-height: 100%;  /* Fallback for browsers do NOT support vh unit */
-  min-height: 80vh; /* These two lines are counted as one :-)       */
+  min-height: 100%; 
+  min-height: 80vh;
 
   display: flex;
   align-items: center;
@@ -18,11 +18,13 @@
 <title>Sign Up</title>
 {% endblock %}
 
+<!-- Users can input either their email or username in to login -->
+
 {% block content %}
 <div class="container square-box d-flex justify-content-center vertical-center" >
     <form method="POST">
         <div class="mb-3 default-colour">
-            <input type="email" class="form-control" id="email" name="email" placeholder="Email" size="30" />
+            <input type="text" class="form-control" id="email_or_user" name="email_or_user" placeholder="Username/Email" size="30" />
         </div>
         <div class="mb-3 default-colour">
             <input type="password" class="form-control" id="password" name="password" placeholder="Password" size="30" />
