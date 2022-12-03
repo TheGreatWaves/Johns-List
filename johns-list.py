@@ -21,7 +21,7 @@ from init_schema import app, db, User, Group, group_member_table, Content
 cred = yaml.load(open('cred.yaml'), Loader=yaml.Loader)
 
 # Images for background of signup/signin
-bg_images = ['https://thumbs.gfycat.com/BrightCleanAnkole-size_restricted.gif', 'https://geekymythology.files.wordpress.com/2018/10/howls-moving-castle-sophie-on-a-train.gif', 'https://i.gifer.com/3QvS.gif', 'https://data.whicdn.com/images/346645969/original.gif'];
+bg_images = ['https://thumbs.gfycat.com/BrightCleanAnkole-size_restricted.gif', 'https://geekymythology.files.wordpress.com/2018/10/howls-moving-castle-sophie-on-a-train.gif', 'https://i.gifer.com/3QvS.gif','https://media2.giphy.com/media/XP3c8dMALpHxK/giphy.gif','https://i.pinimg.com/originals/4e/99/f1/4e99f14687f913f793a66c15eaa52ae5.gif'];
 
 
 # Database credentials configurations 
