@@ -31,3 +31,15 @@ input[type=submit]:hover {
     background-color: #53518e;
     color: #0E0E0E;
 }
+
+button[type=submit] {
+    display: block; 
+    width: 100%;
+    background-color: #8885DA;
+    color: #0E0E0E;
+}
+
+button[type=submit]:hover {
+    background-color: #53518e;
+    color: #0E0E0E;
+}

@@ -385,9 +385,8 @@ def create_content():
         
         # Success message
         flash('Content added successfully', 'success')
-        
-        # TODO: Redirect to content page
-        return render_template('create_content.html')
+   
+        return redirect(url_for('content', content_title=content_title, content_type=content_type))
     
     return render_template('create_content.html')
     
@@ -400,7 +399,7 @@ def content(content_type, content_title):
         content_title = found.title
         content_type = found.content_type
     
-        return render_template('content.html', content_title=content_title, content_type=content_type)
+        return render_template('content.html', content=found)
     else:
         flash('Content page not found', 'danger')
         return redirect('/')

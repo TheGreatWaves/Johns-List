@@ -1,7 +1,36 @@
 {% extends 'base.html' %}
 
 {% block style %}
-<link rel="stylesheet" href={{ url_for('static', filename="css/style.css") }}>
+<link rel="stylesheet" href={{ url_for('static', filename="css/style.css" ) }}>
+
+<style>
+p, h1, h2, h3 {
+    color: #AAAAAA;
+}
+
+p.sub-heading {
+    font-weight: bold;
+}
+
+/* Center image  */
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+a.default {
+    background-color: #8885DA;
+}
+
+a.default:hover {
+    background-color: #53518e;
+    color: #0E0E0E;
+}
+
+</style>
+
 {% endblock %}
 
 {% block title %}
@@ -10,6 +39,37 @@
 
 {% block content %}
 
+<!-- <div id="container">
 <h1 class="default-colour">Content page for {{ content_title }} ({{ content_type }})</h1>
+</div> -->
+<div class="container">
+    <div class="row">
+        <!-- Top row containing content title  -->
+        <div class="col">
+            <h2>{{ content.title }}</h2>
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <!-- Left column -->
+        <div class="col-sm-3 well">
+            <div class="well">
+                <img src="{{ content.poster }}" class="center" alt="poster">
+            </div>
+            
+            <div class="row text-center" style="margin-top: 5px">
+                <a class="btn default" style="margin-left: 10px; width: 94%;" href="#" role="button">Add to list</a>
+            </div>
+        </div>
 
+        <!-- Right column -->
+        <div class="col-sm-8 well">
+            <div class="well" style="margin-top: 1em">
+            <p class="sub-heading">Synopsis</p>
+            <hr>
+            <p>{{ content.synopsis }}</p>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

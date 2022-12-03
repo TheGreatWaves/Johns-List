@@ -3,7 +3,7 @@ This is ONLY responsible for creating tables.
 """
 
 from flask_sqlalchemy import SQLAlchemy
-from flask import Flask
+from flask import Flask, url_for
 
 import yaml
 
@@ -103,10 +103,14 @@ class Content( db.Model ):
     content_type = db.Column( db.String(5) )
     season = db.Column( db.Integer )
     duration = db.Column( db.Integer )
+    poster = db.Column( db.String(300) )
+    synopsis = db.Column( db.String(700) )
     
     def __init__(self, title, content_type):
         self.title = title
         self.content_type = content_type
+        self.poster = url_for('static', filename='place_holder_img.png')
+        self.synopsis = "No sypnosis has been provided."
 
 #=============================#
 # END OF TABLE INITIALIZATION #
