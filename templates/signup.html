@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'sign_base.html' %}
 
 {% block style %}
 <link rel="stylesheet" href={{ url_for('static', filename="css/style.css") }}>
@@ -21,16 +21,16 @@
 {% block content %}
 <div class="container square-box d-flex justify-content-center vertical-center" >
     <form method="POST">
-        <div class="mb-3 default-colour">
+        <div class="mb-3">
             <input type="email" class="form-control" id="email" name="email" placeholder="Email" size="30" />
         </div>
-        <div class="mb-3 default-colour">
+        <div class="mb-3">
             <input type="text" class="form-control" id="username" name="username" placeholder="Username" size="30" />
         </div>
-        <div class="mb-3 default-colour">
+        <div class="mb-3">
             <input type="password" class="form-control" id="password" name="password" placeholder="Password" size="30" />
         </div>
-        <div class="mb-3 default-colour">
+        <div class="mb-3">
             <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm Password" size="30" />
         </div>
 

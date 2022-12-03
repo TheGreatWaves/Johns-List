@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'sign_base.html' %}
 
 {% block style %}
 <link rel="stylesheet" href={{ url_for('static', filename="css/style.css") }}>
@@ -14,19 +14,20 @@
 </style>
 {% endblock %}
 
+<head>
 {% block title %}
-<title>Sign Up</title>
+<title>Sign In</title>
 {% endblock %}
-
+</head>
 <!-- Users can input either their email or username in to login -->
-
+<body>
 {% block content %}
 <div class="container square-box d-flex justify-content-center vertical-center" >
     <form method="POST">
-        <div class="mb-3 default-colour">
+        <div class="mb-3">
             <input type="text" class="form-control" id="email_or_user" name="email_or_user" placeholder="Username/Email" size="30" />
         </div>
-        <div class="mb-3 default-colour">
+        <div class="mb-3">
             <input type="password" class="form-control" id="password" name="password" placeholder="Password" size="30" />
         </div>
 
@@ -35,3 +36,4 @@
     </form>
 </div>
 {% endblock %}
+</body>

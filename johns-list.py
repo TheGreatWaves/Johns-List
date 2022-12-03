@@ -6,6 +6,7 @@ Add and implement entry points here (We could move them out later if desired.)
 # Flask
 from flask import Flask, render_template, request, redirect, flash, session, url_for
 from flask_sqlalchemy import SQLAlchemy
+import random
 
 # For hashing
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -18,6 +19,9 @@ from init_schema import app, db, User, Group, group_member_table, Content
 
 # Load credentials
 cred = yaml.load(open('cred.yaml'), Loader=yaml.Loader)
+
+# Images for background of signup/signin
+bg_images = ['https://thumbs.gfycat.com/BrightCleanAnkole-size_restricted.gif', 'https://geekymythology.files.wordpress.com/2018/10/howls-moving-castle-sophie-on-a-train.gif', 'https://i.gifer.com/3QvS.gif', 'https://data.whicdn.com/images/346645969/original.gif'];
 
 
 # Database credentials configurations 
@@ -68,8 +72,9 @@ def about():
 # Sign up 
 @app.route("/signup/", methods=['GET', 'POST'])
 def signup():
+    img = random.choice(bg_images)
     if request.method == 'GET':
-        return render_template('signup.html')
+        return render_template('signup.html',img=img)
 
     elif request.method == 'POST':
         userDetails = request.form
@@ -77,18 +82,18 @@ def signup():
         # Check that passwords matches
         if userDetails['password'] != userDetails['confirm_password']:
             flash('Password does not match', 'danger')
-            return render_template('signup.html')
+            return render_template('signup.html',img=img)
         
         email = userDetails['email']
         username = userDetails['username']
 
         if email == "":
             flash('Email can not be blank', 'danger')
-            return render_template('signup.html')
+            return render_template('signup.html',img=img)
 
         if username == "":
             flash('Username can not be blank', 'danger')
-            return render_template('signup.html')
+            return render_template('signup.html',img=img)
 
         existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
 
@@ -104,7 +109,7 @@ def signup():
             elif existing_user.username == username:
                 flash('Username unavailable', 'danger')
             
-            return render_template('signup.html')
+            return render_template('signup.html',img=img)
     
 
         pw = userDetails['password']
@@ -119,21 +124,22 @@ def signup():
         # Redirect user to sign in page upon success
         return redirect('/signin/')    
 
-    return render_template('signup.html')
+    return render_template('signup.html',img=img)
 
 # Sign in
 @app.route("/signin/", methods=['GET', 'POST'])
 def signin():
+    img = random.choice(bg_images)
     if request.method == 'GET':
         
         # Safe guard
         if logged_in():
             return redirect('/')
 
-        return render_template('signin.html')
+        return render_template('signin.html', img=img)
 
     elif request.method == 'POST':
-
+        
         loginForm = request.form
         user_input = loginForm['email_or_user']
         
@@ -161,14 +167,14 @@ def signin():
             else:
                 # Wrong password
                 flash("Incorrect credentials", 'danger')
-                return render_template('signin.html')
+                return render_template('signin.html', img=img)
 
         else:
             # No existing user with given email/username
             flash('User not found', 'danger')
-            return render_template('signin.html')
+            return render_template('signin.html', img=img)
     
-    return render_template('signin.html')
+    return render_template('signin.html',img=img)
 
 # Sign out
 @app.route('/signout/')
