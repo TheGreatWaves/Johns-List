@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<link rel="stylesheet" href={{ url_for('static', filename="css/style.css" ) }}>
+
+<style>
+.vertical-center {
+    min-height: 100%;
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+}
+
+
+input[type=text], select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  color: #AAAAAA;
+  background-color: #131313;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+label {
+  padding: 12px 12px 12px 0;
+  display: inline-block;
+  color: #AAAAAA;
+}
+
+</style>
+{% endblock %}
+
+{% block title %}
+<title>Sign Up</title>
+{% endblock %}
+
+{% block content %}
+<div class="container square-box d-flex justify-content-center vertical-center">
+
+         <form method="POST">
+
+            <!-- Content Title -->
+            <div class="row">
+                <div class="col-25">
+                    <label for="content_title">Content Title</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="content_title" name="content_title" placeholder="Title">
+                </div>
+            </div>
+
+            <!-- Content Type -->
+            <div class="row">
+                <div class="col-25">
+                    <label for="content_type">Content Type</label>
+                </div>
+                <div class="col-75">
+                    <select id="content_type" name="content_type">
+                        <option value="anime">Anime</option>
+                        <option value="manga">Manga</option>
+                    </select>
+                </div>
+            </div>
+            <br>
+            <div class="row">
+                <input type="submit" value="Create">
+            </div>
+        </form>
+</div>
+{% endblock %}

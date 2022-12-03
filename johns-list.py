@@ -14,20 +14,20 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import yaml
 
 # App, db and tables
-from init_schema import app, db, User, Group, group_member_table
+from init_schema import app, db, User, Group, group_member_table, Content
 
 # Load credentials
 cred = yaml.load(open('cred.yaml'), Loader=yaml.Loader)
 
 
 # Database credentials configurations 
-app.config['MYSQL_HOST'] = cred['mysql_host']
-app.config['MYSQL_USER'] = cred['mysql_user']
-app.config['MYSQL_PASSWORD'] = cred['mysql_password']
-app.config['MYSQL_DB'] = cred['mysql_db']
-app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+# app.config['MYSQL_HOST'] = cred['mysql_host']
+# app.config['MYSQL_USER'] = cred['mysql_user']
+# app.config['MYSQL_PASSWORD'] = cred['mysql_password']
+# app.config['MYSQL_DB'] = cred['mysql_db']
+# app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 app.config['SECRET_KEY'] = 'SECRET_KEY' # TODO: REMOVE THIS!
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:johnpass@localhost:13310/johndb'
+
 
 # Comment to disable logs
 app.config['SQLALCHEMY_ECHO'] = True
@@ -342,6 +342,76 @@ def search_group():
         groups = Group.query.filter(Group.name.like(search_name)).order_by(Group.name).all()
         
         return render_template('search_group.html', groups=groups)
+    
+# Content related...
+
+# Create content page
+@app.route('/create_content/', methods=['GET', 'POST'])
+def create_content():
+    if request.method == 'GET':
+        
+        if not logged_in():
+            session['last_page'] = url_for('create_content')
+            return redirect(url_for('signin'))
+        
+        return render_template('create_content.html')
+    
+    elif request.method == 'POST':
+        form = request.form
+        content_title = form['content_title']
+        content_type = form['content_type']
+        
+        # blank input
+        if content_title == "":
+            flash('Content title can not be empty', 'danger')
+            return redirect('/create_content/')
+            
+        # existing content
+        found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        if found:
+            flash('Content already exist', 'danger')
+            return redirect('/create_content/')
+            
+        # Make new content
+        new_content = Content(content_title, content_type)
+        db.session.add(new_content)
+        db.session.commit()
+        
+        # Success message
+        flash('Content added successfully', 'success')
+        
+        # TODO: Redirect to content page
+        return render_template('create_content.html')
+    
+    return render_template('create_content.html')
+    
+@app.route('/content/<content_type>/<content_title>', methods=['GET'])
+def content(content_type, content_title):
+    
+    found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+    
+    if found:
+        content_title = found.title
+        content_type = found.content_type
+    
+        return render_template('content.html', content_title=content_title, content_type=content_type)
+    else:
+        flash('Content page not found', 'danger')
+        return redirect('/')
+    
+@app.route('/content/search/', methods=['GET', 'POST'])
+def search_content():
+    if request.method == 'GET':
+        return render_template('search_content.html')
+    elif request.method == 'POST':
+        
+        content_title = request.form['content_title']
+        search_name = "%{}%".format(content_title)
+        contents = Content.query.filter(Content.title.like(search_name)).order_by(Content.title).all()
+        
+        return render_template('search_content.html', contents=contents)
+        
+    
     
 #=========================================#
 #    END OF ENTRY POINT INITIALIZATION    #

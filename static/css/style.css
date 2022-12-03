@@ -10,3 +10,24 @@
 .default-purple {
     background-color: #8885DA;
 }
+
+.default-text-color {
+    color: #AAAAAA;
+}
+
+/* Submit button */
+
+input[type=submit] {
+    background-color: #8885DA;
+    color: #0E0E0E;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    float: right;
+}
+
+input[type=submit]:hover {
+    background-color: #53518e;
+    color: #0E0E0E;
+}

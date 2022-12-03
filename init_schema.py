@@ -93,7 +93,20 @@ class Group(db.Model):
     def __init__(self, name):
         self.name = name
 
-
+class Content( db.Model ):
+    content_id = db.Column( 'content_id', db.Integer, primary_key = True, autoincrement = True )
+    title = db.Column( db.String(100), nullable=False )
+    status = db.Column( db.Integer )
+    genre = db.Column( db.String(20) )
+    theme = db.Column( db.String(40) )
+    demographic = db.Column( db.String(7) )
+    content_type = db.Column( db.String(5) )
+    season = db.Column( db.Integer )
+    duration = db.Column( db.Integer )
+    
+    def __init__(self, title, content_type):
+        self.title = title
+        self.content_type = content_type
 
 #=============================#
 # END OF TABLE INITIALIZATION #

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<link rel="stylesheet" href={{ url_for('static', filename="css/style.css") }}>
+{% endblock %}
+
+{% block title %}
+<title>JohnsList</title>
+{% endblock %}
+
+{% block content %}
+
+<h1 class="default-colour">Content page for {{ content_title }} ({{ content_type }})</h1>
+
+{% endblock %}
