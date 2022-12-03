@@ -44,4 +44,9 @@
     </ul>
 </div>
 
+<div>
+    <a class="btn btn-dark" href="{{ url_for('list', owner='user', owner_name=user.username, list_name=user.lists[0].name) }}" role="button">Watch List</a>
+    <a class="btn btn-dark" href="{{ url_for('list', owner='user', owner_name=user.username, list_name=user.lists[1].name) }}" role="button">Completed List</a>
+</div>
+
 {% endblock %}

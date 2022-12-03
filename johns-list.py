@@ -15,7 +15,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import yaml
 
 # App, db and tables
-from init_schema import app, db, User, Group, group_member_table, Content
+from init_schema import app, db, User, Group, group_member_table, Content, List
 
 # Load credentials
 cred = yaml.load(open('cred.yaml'), Loader=yaml.Loader)
@@ -116,6 +116,15 @@ def signup():
         hashed_pw = generate_password_hash(pw)
         
         new_user = User(email=email, username=username, password=hashed_pw)
+        
+        new_user_watch_list = List(new_user.user_id, 'u')
+        new_user_watch_list.name="watchlist"
+        new_user_completed_list = List(new_user.user_id, 'u')
+        new_user_completed_list.name="completed"
+        
+        new_user.lists.append(new_user_watch_list)
+        new_user.lists.append(new_user_completed_list)
+        
         db.session.add(new_user)
         db.session.commit()
         
@@ -184,8 +193,8 @@ def signout():
     return redirect('/')
 
 # User profile page
-@app.route('/profile/<username>', methods=['GET'])
-def profile(username):
+@app.route('/user/<username>', methods=['GET'])
+def user(username):
 
     # Find user using username
     user = User.query.filter_by(username=username).first()
@@ -202,7 +211,7 @@ def profile(username):
 
     is_owner = whoami_username() == user.username
 
-    return render_template('profile.html', user=user, groups=user_groups, is_owner=is_owner)
+    return render_template('user.html', user=user, groups=user_groups, is_owner=is_owner)
 
 @app.route('/create_group/', methods=['GET', 'POST'])
 def create_group():
@@ -236,6 +245,15 @@ def create_group():
     
         # Add current user to the newly created group
         new_group.members.append(whoami())
+
+        # Add lists
+        new_group_watch_list = List(new_group.group_id, 'g')
+        new_group_watch_list.name="watchlist"
+        new_group_completed_list = List(new_group.group_id, 'g')
+        new_group_completed_list.name="completed"
+        
+        new_group.lists.append(new_group_watch_list)
+        new_group.lists.append(new_group_completed_list)
 
         # Save changes
         db.session.add(new_group)
@@ -418,8 +436,8 @@ def search_content():
         content_title = request.form['content_title']
         search_name = "%{}%".format(content_title)
         contents = Content.query.filter(Content.title.like(search_name)).order_by(Content.title).all()
-        
         return render_template('search_content.html', contents=contents)
+    return render_template('search_content.html')
 
 @app.route('/content/<content_type>/<content_title>/edit', methods=['GET', 'POST'])
 def edit_content(content_type, content_title):
@@ -472,17 +490,94 @@ def edit_content(content_type, content_title):
             where(Content.content_id == cid).
             values(title=content_title,synopsis = content_synopsis, poster=content_img)
         )
+        
+        content = Content.query.filter(Content.content_id == cid).first()
+        content.title = content_title
+        content.synopsis = content_synopsis
+        content.poster = content_img
+        
         db.session.execute(stmt)
         db.session.commit()
         
         # Success message
         flash('Content edited successfully', 'success')
    
-
-
         return redirect(url_for('content', content_title=content_title, content_type=content_type))
 
 
+@app.route('/content/<content_type>/<content_title>/add', methods=['GET'])
+def list_add_content(content_type, content_title):
+    
+    # Handle login
+    if not logged_in():
+        session['last_page'] = url_for('list_add_content', content_type=content_type, content_title=content_title)
+        return redirect(url_for('signin'))
+    
+    user = whoami()
+    content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+    
+    if content:
+        if not user.lists[List.WATCH_LIST].has_content(content):
+            flash(f'Added to watch list', 'success')
+            user.lists[List.WATCH_LIST].add(content)
+            db.session.commit()
+        else:
+            flash(f'Content already in list', 'danger')
+            
+    else:
+        flash(f'Action failed', 'danger')
+        
+    return redirect(url_for('content', content_title=content_title, content_type=content_type))
+    
+@app.route('/<owner>/<owner_name>/<list_name>/', methods=['GET', 'POST'])
+def list(owner, owner_name, list_name):
+    if request.method == 'GET':
+        
+        list = None
+        name = None
+        
+        if owner=="user":
+            
+            user = User.query.filter_by(username=owner_name).first()
+            
+            if user is None:
+                flash('User not found', 'danger')
+                return redirect('/')
+            
+            if list_name=="watchlist":
+                list = user.lists[0]
+            elif list_name=="completed":
+                list = user.lists[1]
+            else:
+                flash('Error finding list', 'danger')
+                return redirect('/')
+            
+            # Set owner name
+            name = user.username
+            
+        elif owner=="group":
+            
+            group = Group.query.filter(Group.name==owner_name).first()
+            
+            if group is None:
+                flash('Group not found', 'danger')
+                return redirect('/')
+            
+            if list_name=="watchlist":
+                list = group.lists[0]
+            elif list_name=="completed":
+                list = group.lists[1]
+            else:
+                flash('Error finding list', 'danger')
+                return redirect('/')
+            
+            # Set owner name
+            name = group.name
+        
+        return render_template('list.html', owner_name=name, list=list)
+    elif request.method == 'POST':
+        return render_template('list.html')
+    return render_template('list.html')
     
     
 #=========================================#

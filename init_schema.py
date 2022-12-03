@@ -3,6 +3,7 @@ This is ONLY responsible for creating tables.
 """
 
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.hybrid import hybrid_property
 from flask import Flask, url_for
 
 import yaml
@@ -36,7 +37,7 @@ group_member_table = db.Table('group_member',
 )
 
 # User table
-class User(db.Model):
+class User( db.Model ):
     user_id = db.Column('user_id', db.Integer, primary_key = True, autoincrement=True)
     user_class = db.Column('user_class', db.CHAR(1), primary_key = True, default='u')
     name = db.Column(db.String(20), default='None')
@@ -45,6 +46,9 @@ class User(db.Model):
     password = db.Column(db.String(255))
     registered_date = db.Column(db.Date, default=date.today())
     profile_pic = db.Column(db.LargeBinary)
+    
+    lists = db.relationship('List', lazy='select',
+        backref=db.backref('user', lazy='joined'))
     
     def __init__(self, email, username, password):
         self.email = email
@@ -61,7 +65,7 @@ class User(db.Model):
 
 
 # Group table
-class Group(db.Model):
+class Group( db.Model ):
     group_id = db.Column('group_id', db.Integer, primary_key = True, autoincrement = True)
     group_class = db.Column('group_class', db.CHAR(1), primary_key = True, default='g')
     name = db.Column(db.String(20), unique=True, nullable=False)
@@ -72,6 +76,9 @@ class Group(db.Model):
         secondary = group_member_table,
         lazy='subquery',
         backref=db.backref('groups', lazy=True))
+    
+    lists = db.relationship('List', lazy='select',
+        backref=db.backref('group', lazy='joined'))
 
     def get_member_count(self):
         return Group.query.join(Group.members).filter(Group.group_id == self.group_id).count()
@@ -100,7 +107,7 @@ class Content( db.Model ):
     genre = db.Column( db.String(20) )
     theme = db.Column( db.String(40) )
     demographic = db.Column( db.String(7) )
-    content_type = db.Column( db.String(5) )
+    content_type = db.Column( db.CHAR(5) )
     season = db.Column( db.Integer )
     duration = db.Column( db.Integer )
     poster = db.Column( db.String(300) )
@@ -110,8 +117,69 @@ class Content( db.Model ):
         self.title = title
         self.content_type = content_type
         self.poster = url_for('static', filename='place_holder_img.png')
-        self.synopsis = "No sypnosis has been provided."
+        self.synopsis = "No synopsis has been provided."
+        
+    def find(name, type):
+        return Content.query.filter((Content.title == name) & (Content.content_type == type)).first()
 
+
+# M-2-M relationship between list and content
+list_contents_table = db.Table('list_contents_table',
+    db.Column('list_id', db.Integer, db.ForeignKey('list.list_id')),
+    db.Column('content_id', db.Integer, db.ForeignKey('content.content_id'))
+)
+
+class List( db.Model ):
+    list_id = db.Column( db.Integer, primary_key = True, autoincrement = True)
+    
+    # For users
+    user_id = db.Column( db.Integer, db.ForeignKey("user.user_id"), nullable=True )
+    
+    # For groups
+    group_id = db.Column( db.Integer, db.ForeignKey("group.group_id"), nullable=True )
+
+    
+    @hybrid_property
+    def owner_id(self):
+        return self.user_id or self.group_id
+    
+    owner_class = db.Column( db.CHAR(1), nullable=False )
+    
+    name = db.Column( db.String(30) )
+    type = db.Column( db.CHAR(5) )
+    desc = db.Column( db.String(1000) )
+    
+    contents = db.relationship('Content',
+        secondary = list_contents_table,
+        lazy='subquery',
+        backref=db.backref('contents', lazy=True))
+    
+    WATCH_LIST = 0
+    COMPLETED_LIST = 1
+    
+    def has_content(self, content):
+        
+        return List.query.join(list_contents_table)\
+            .join(Content)\
+            .filter((list_contents_table.c.list_id == self.list_id) & (list_contents_table.c.content_id == content.content_id)).count() > 0\
+    
+    def add(self, content):
+        if not self.has_content(content):
+            self.contents.append(content)
+    
+    def __init__(self, owner_id, owner_class):
+        
+        self.owner_class = owner_class
+        
+        if owner_class=='u':
+            self.user_id = owner_id
+        elif owner_class=='g':
+            self.group_id = owner_id
+        else:
+            self.user_id = 'u'
+            
+        
+    
 #=============================#
 # END OF TABLE INITIALIZATION #
 #=============================#

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<link rel="stylesheet" href={{ url_for('static', filename="css/style.css") }}>
+{% endblock %}
+
+{% block title %}
+<title>JohnsList</title>
+{% endblock %}
+
+{% block content %}
+
+<h1 class="default-colour">{{ owner_name }}'s {{ list.name }}</h1>
+
+<div class="row">
+{% for content in list.contents %}
+<div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
+    <div class="card-img-top d-flex align-items-center" style="background-color: #1C1C1C;">
+      <div>
+        <!-- Content image -->
+        <img class="img-fluid" src="{{ content.poster }}" alt="content_img" height="120px" width="150px">
+      </div>
+      <p class="col p-2 m-0 default-text-color">{{ content.title }} ({{ content.content_type }})</p>
+      <a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}" class="btn stretched-link"></a>
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+{% endblock %}

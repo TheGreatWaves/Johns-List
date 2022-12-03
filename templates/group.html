@@ -34,7 +34,7 @@
         <li class="list-group-item" style="background-color: #53518e">
             <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
                 <a class="btn" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E"
-                    href="{{ url_for('profile', username=member.username) }}" role="button">{{ member.username }}</a>
+                    href="{{ url_for('user', username=member.username) }}" role="button">{{ member.username }}</a>
             </div>
         </li>
         {% endfor %}
@@ -46,5 +46,10 @@
         </li>
         {% endif %}
     </ul>
+</div>
+
+<div>
+    <a class="btn btn-dark" href="{{ url_for('list', owner='group', owner_name=group.name, list_name=group.lists[0].name) }}" role="button">Watch List</a>
+    <a class="btn btn-dark" href="{{ url_for('list', owner='group', owner_name=group.name, list_name=group.lists[1].name) }}" role="button">Completed List</a>
 </div>
 {% endblock %}
