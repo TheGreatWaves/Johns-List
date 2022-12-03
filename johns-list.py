@@ -390,19 +390,24 @@ def create_content():
     
     return render_template('create_content.html')
     
-@app.route('/content/<content_type>/<content_title>', methods=['GET'])
+@app.route('/content/<content_type>/<content_title>', methods=['GET','POST'])
 def content(content_type, content_title):
+    if request.method == 'GET':
+        found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        
+        if found:
+            content_title = found.title
+            content_type = found.content_type
+        
+            return render_template('content.html', content=found)
+        else:
+            flash('Content page not found', 'danger')
+            return redirect('/')
     
-    found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
-    
-    if found:
-        content_title = found.title
-        content_type = found.content_type
-    
-        return render_template('content.html', content=found)
-    else:
-        flash('Content page not found', 'danger')
-        return redirect('/')
+    elif request.method == 'POST':
+        return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
+
+# Search for content by title
     
 @app.route('/content/search/', methods=['GET', 'POST'])
 def search_content():
@@ -415,7 +420,69 @@ def search_content():
         contents = Content.query.filter(Content.title.like(search_name)).order_by(Content.title).all()
         
         return render_template('search_content.html', contents=contents)
+
+@app.route('/content/<content_type>/<content_title>/edit', methods=['GET', 'POST'])
+def edit_content(content_type, content_title):
+    if request.method == 'GET':
+        found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        if found:
+            content_title = found.title
+            content_type = found.content_type
         
+        if not logged_in():
+            session['last_page'] = url_for('edit_content',content_type=content_type, content_title=content_title)
+            return redirect(url_for('signin'))
+        
+        return render_template('edit_content.html',content=found)
+
+    elif request.method == 'POST':
+        content = Content.query.filter((Content.title==content_title) & (Content.content_type == content_type)).first()
+        cid = content.content_id
+        form = request.form
+        content_title = form['content_title']
+        content_img = form['content_img']
+        content_synopsis = form['content_synopsis']
+
+
+        
+        # TODO make sure form results are acceptable and save them
+
+        # blank input
+        if content_title == "":
+            flash('Content title can not be empty', 'danger')
+            return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
+        
+        if content_img == "":
+            content_img = '/static/place_holder_img.png';
+
+        if content_synopsis == "":
+                content_synopsis = 'No sypnosis has been provided.'
+            
+        # existing content
+        found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        if found:
+            if found.title != content_title:
+                flash('This content has its own page already', 'danger')
+                return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
+            
+        # Make edits to the content
+        from sqlalchemy import update
+        stmt = (
+            update(Content).
+            where(Content.content_id == cid).
+            values(title=content_title,synopsis = content_synopsis, poster=content_img)
+        )
+        db.session.execute(stmt)
+        db.session.commit()
+        
+        # Success message
+        flash('Content edited successfully', 'success')
+   
+
+
+        return redirect(url_for('content', content_title=content_title, content_type=content_type))
+
+
     
     
 #=========================================#

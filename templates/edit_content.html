@@ -11,7 +11,20 @@ p, h1, h2, h3 {
 p.sub-heading {
     font-weight: bold;
 }
-
+input[type=text], select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  color: #AAAAAA;
+  background-color: #131313;
+  border-radius: 4px;
+  resize: vertical;
+}
+label {
+  padding: 12px 12px 12px 0;
+  display: inline-block;
+  color: #AAAAAA;
+}
 /* Center image  */
 .center {
   display: block;
@@ -32,7 +45,7 @@ a.default:hover {
 </style>
 
 {% endblock %}
-
+›
 {% block title %}
 <title>JohnsList</title>
 {% endblock %}
@@ -43,10 +56,12 @@ a.default:hover {
 <h1 class="default-colour">Content page for {{ content_title }} ({{ content_type }})</h1>
 </div> -->
 <div class="container">
+    <form method="POST">
     <div class="row">
         <!-- Top row containing content title  -->
         <div class="col">
-            <h2>{{ content.title }}</h2>
+            <label for="content_title" >Content Title</label>
+            <input type="text" id="content_title" name="content_title" value="{{content.title}}">
         </div>
     </div>
     <br>
@@ -54,27 +69,25 @@ a.default:hover {
         <!-- Left column -->
         <div class="col-sm-3 well">
             <div class="well">
+                <label for="content_img">Content Image URL</label>
+                <input type="text" id="content_img" name="content_img" value="{{content.poster}}">
                 <img src="{{ content.poster }}" class="center" alt="poster">
-            </div>
-            
-            <div class="row text-center" style="margin-top: 5px">
-                <a class="btn default" style="margin-left: 10px; width: 94%;" href="#" role="button">Add to list</a>
-            </div>
-            <div class="row text-center" style="margin-top: 5px">
-                <form action="" method = "POST">
-                    <button class="btn default" style="margin-left: 10px; width: 94%;" type="submit" >Edit</button>
-                </form>
             </div>
         </div>
 
         <!-- Right column -->
         <div class="col-sm-8 well">
             <div class="well" style="margin-top: 1em">
-            <p class="sub-heading">Synopsis</p>
-            <hr>
-            <p>{{ content.synopsis }}</p>
+            <label for="content_synopsis">Synopsis</label>
+            <input type="text" id="content_synopsis" name="content_synopsis" value="{{content.synopsis}}">
             </div>
         </div>
     </div>
+
+    <div class="row text-center" style="margin-top: 5px">
+        <button class="btn default" style="margin-left: 10px; width: 22.75%;" type="submit" >Submit changes</button>
+    </div>
+    
+</form>
 </div>
 {% endblock %}
