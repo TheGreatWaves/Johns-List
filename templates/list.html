@@ -56,11 +56,11 @@ button[type=submit].complete:hover {
     <!-- Content Title -->
     <div class="col-10 position-relative justify-content-center" style="background-color: transparent">
       <div class="card justify-content-center" style="height: 100%; width: 100%; background-color: transparent; border-color: transparent;">
-        <p class="default-text-color">{{ content.title }} ({{ content.content_type }})</p>
+        <p class="default-text-color" style="display: block">{{ content.title }} ({{ content.content_type }})</p>
       </div>
-
+      <a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}" class="stretched-link" style="display: block;"></a>
       <!-- Make clickable -->
-      <a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}" class="btn stretched-link"></a>
+      
     </div>
 
     <!--  -->

@@ -1,52 +1,135 @@
-{% extends 'base.html' %}
+{% extends 'page_base.html' %}
 
 {% block style %}
 <link rel="stylesheet" href={{ url_for('static', filename="css/style.css" ) }}>
+
+<style>
+    p,
+    h1,
+    h2,
+    h3 {
+        color: #AAAAAA;
+    }
+
+    p.sub-heading {
+        font-weight: bold;
+    }
+
+    /* Center image  */
+    .center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+    }
+
+    a.default {
+        background-color: #8885DA;
+    }
+
+    a.default:hover {
+        background-color: #53518e;
+        color: #0E0E0E;
+    }
+
+    a.search,
+    a.create,
+    button.edit {
+        background-color: transparent;
+        color: #AAAAAA;
+        border-color: #AAAAAA;
+        line-height: 15px;
+    }
+
+    a.search:hover,
+    a.create:hover,
+    a.group:hover,
+    button.edit:hover {
+        background-color: #53518e !important;
+        color: #0E0E0E !important;
+    }
+
+</style>
+
 {% endblock %}
 
 {% block title %}
-<title>JohnsList</title>
+<title>{{ user.username }}</title>
 {% endblock %}
 
-<!-- Render User's profile here -->
-{% block content %}
+{% block page_title %}
+<div class="col">
+    <div class="row">
+        <div class="col">
+            <h2>{{ user.username }}</h2>
+        </div>
+        
+        {% if is_owner %}
+        
+        <!-- TODO: ROUTE THIS -->
+        <div class="col-md-1 text-end" style="margin: auto;">
+            <form action="" method="POST">
+                <button class="btn edit" type="submit">Edit</button>
+            </form>
+        </div>
 
-<h1 class="default-colour">{{ user.username }}</h1>
-
-{% if is_owner %}
-<div>
-    <a class="btn btn-dark" href="{{ url_for('create_group') }}" role="button">Create Group</a>
-    <a class="btn btn-dark" href="{{ url_for('search_group') }}" role="button">Search Group</a>
-</div>
-{% endif %}
-
-<div class="card" style="width: 18rem; background-color: #0E0E0E;">
-    <div class="card-header text-center" style="background-color: #8885DA; color: #0E0E0E">
-        Groups
-    </div>
-    <ul class="list-group list-group-flush" style="background-color: #0E0E0E">
-        {% if groups %}
-        {% for group in groups %}
-        <li class="list-group-item" style="background-color: #53518e">
-            <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
-                <a class="btn" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E"
-                    href="{{ url_for('group', group_name=group.name) }}" role="button">{{ group.name }}</a>
-            </div>
-        </li>
-        {% endfor %}
-        {% else %}
-        <li class="list-group-item" style="background-color: #53518e">
-            <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
-                <a class="btn" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E">No Groups!</a>
-            </div>
-        </li>
         {% endif %}
-    </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Left column -->
+<div class="col-sm-2 well">
+    <div class="well">
+        <img src="{{ url_for('static', filename='place_holder_img.png' ) }}" class="center img-thumbnail" alt="poster">
+    </div>
 </div>
 
-<div>
-    <a class="btn btn-dark" href="{{ url_for('list', owner='user', owner_name=user.username, list_name=user.lists[0].name) }}" role="button">Watch List</a>
-    <a class="btn btn-dark" href="{{ url_for('list', owner='user', owner_name=user.username, list_name=user.lists[1].name) }}" role="button">Completed List</a>
-</div>
+<!-- Right column -->
+<div class="col well">
+    <div class="row">
+        <div class="col-md-8 well" style="margin-top: 1em">
+            <p class="sub-heading">About me</p>
+            <hr>
+            <p style="white-space: pre-line">What??</p>
+        </div>
+        <div class="col-md-4 well" style="margin-top: 1em">
 
+            <div class="row" style="height: 24px">
+                <div class="col-md-3">
+                    <p class="sub-heading">Groups</p>
+                </div>
+
+                {% if is_owner %}
+                <div class="col text-end">
+                    <a class="btn create" href="{{ url_for('create_group') }}" role="button"
+                        style="vertical-align: top; height: 30px;">Create</a>
+                    <a class="btn search" href="{{ url_for('search_group') }}" role="button"
+                        style="vertical-align: top; height: 30px;">Search</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <hr>
+
+            {% if groups %}
+            {% for group in groups %}
+            <li class="list-group-item" style="background-color: #53518e; margin-bottom: 5px;">
+                <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
+                    <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #1C1C1C;"
+                        href="{{ url_for('group', group_name=group.name) }}" role="button">{{ group.name }}</a>
+                </div>
+            </li>
+            {% endfor %}
+            {% else %}
+            <li class="list-group-item" style="background-color: #53518e">
+                <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
+                    <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #1C1C1C">No Groups!</a>
+                </div>
+            </li>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}

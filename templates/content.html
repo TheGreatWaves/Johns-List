@@ -1,92 +1,90 @@
-{% extends 'base.html' %}
+{% extends 'page_base.html' %}
 
 {% block style %}
 <link rel="stylesheet" href={{ url_for('static', filename="css/style.css" ) }}>
 
 <style>
-p, h1, h2, h3 {
-    color: #AAAAAA;
-}
+    p,
+    h1,
+    h2,
+    h3 {
+        color: #AAAAAA;
+    }
 
-p.sub-heading {
-    font-weight: bold;
-}
+    p.sub-heading {
+        font-weight: bold;
+    }
 
-/* Center image  */
-.center {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-}
+    /* Center image  */
+    .center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+    }
 
-a.default {
-    background-color: #8885DA;
-}
+    a.default {
+        background-color: #8885DA;
+    }
 
-a.default:hover {
-    background-color: #53518e;
-    color: #0E0E0E;
-}
+    a.default:hover {
+        background-color: #53518e;
+        color: #0E0E0E;
+    }
 
-button.edit {
-    margin-left: 10px; 
-    width: 90%; 
-    background-color: transparent; 
-    color: #AAAAAA; 
-    border-color: #AAAAAA
-}
-
+    button.edit {
+        margin-left: 10px;
+        width: 90%;
+        background-color: transparent;
+        color: #AAAAAA;
+        border-color: #AAAAAA
+    }
 </style>
 
 {% endblock %}
 
 {% block title %}
-<title>JohnsList</title>
+<title>{{ content.title }}</title>
+{% endblock %}
+
+
+{% block page_title %}
+<div class="col">
+    <div class="row">
+        <div class="col">
+            <h2>{{ content.title }}</h2>
+        </div>
+        
+        <!-- Edit content page -->
+        <div class="col-md-1 text-end" style="margin: auto;">
+            <form action="" method="POST">
+                <button class="btn edit" type="submit">Edit</button>
+            </form>
+        </div>
+
+    </div>
+</div>
 {% endblock %}
 
 {% block content %}
-
-<!-- <div id="container">
-<h1 class="default-colour">Content page for {{ content_title }} ({{ content_type }})</h1>
-</div> -->
-<div class="container">
-    <div class="row">
-        <!-- Top row containing content title  -->
-        <div class="col">
-            <div class="row">
-                <div class="col">
-                    <h2>{{ content.title }}</h2>
-                </div>
-                <div class="col-md-1 text-end" style="margin: auto;">
-                    <form action="" method = "POST">
-                        <button class="btn edit" type="submit">Edit</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+<!-- Left column -->
+<div class="col-sm-3 well">
+    <div class="well">
+        <img src="{{ content.poster }}" class="center rounded" alt="poster">
     </div>
-    <br>
-    <div class="row">
-        <!-- Left column -->
-        <div class="col-sm-3 well">
-            <div class="well">
-                <img src="{{ content.poster }}" class="center rounded" alt="poster">
-            </div>
-            
-            <div class="row text-center" style="margin-top: 5px">
-                <a class="btn default" style="margin-left: 10px; width: 94%;" href="{{ url_for('list_add_content', content_title=content.title, content_type=content.content_type) }}" role="button">Add to list</a>
-            </div>
-        </div>
+    <div class="row text-center" style="margin-top: 5px">
+        <a class="btn default" style="margin-left: 10px; width: 94%;"
+            href="{{ url_for('list_add_content', content_title=content.title, content_type=content.content_type) }}"
+            role="button">Add to my list</a>
+    </div>
+</div>
 
-        <!-- Right column -->
-        <div class="col-sm-9 well">
-            <div class="well" style="margin-top: 1em">
-            <p class="sub-heading">Synopsis</p>
-            <hr>
-            <p style="white-space: pre-line">{{ content.synopsis }}</p>
-            </div>
-        </div>
+<!-- Right column -->
+<div class="col-sm-9 well">
+    <div class="well" style="margin-top: 1em">
+        <p class="sub-heading">Synopsis</p>
+        <hr>
+        <p style="white-space: pre-line">{{ content.synopsis }}</p>
     </div>
 </div>
 {% endblock %}

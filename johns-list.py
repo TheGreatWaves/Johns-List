@@ -320,7 +320,13 @@ def leave_group(group_name):
         
         # Group has no members, disband.
         if group.size <= 0:
+            
+            # Clear list ( so all foreign keys are let-go )
+            group.lists = []
+            
+            # Delete the group
             group_q.delete()
+            
             db.session.commit()
             flash('Group disbanded!', 'success')
             return redirect('/')
