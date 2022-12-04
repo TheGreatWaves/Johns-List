@@ -111,7 +111,7 @@ class Content( db.Model ):
     season = db.Column( db.Integer )
     duration = db.Column( db.Integer )
     poster = db.Column( db.String(300) )
-    synopsis = db.Column( db.String(700) )
+    synopsis = db.Column( db.String(2000) )
     
     def __init__(self, title, content_type):
         self.title = title
