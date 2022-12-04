@@ -122,7 +122,7 @@ class Content( db.Model ):
     def find(name, type):
         return Content.query.filter((Content.title == name) & (Content.content_type == type)).first()
 
-
+    
 # M-2-M relationship between list and content
 list_contents_table = db.Table('list_contents_table',
     db.Column('list_id', db.Integer, db.ForeignKey('list.list_id')),
@@ -146,7 +146,7 @@ class List( db.Model ):
     owner_class = db.Column( db.CHAR(1), nullable=False )
     
     name = db.Column( db.String(30) )
-    type = db.Column( db.CHAR(5) )
+    type = db.Column( db.CHAR(5))
     desc = db.Column( db.String(1000) )
     
     contents = db.relationship('Content',
@@ -182,7 +182,42 @@ class List( db.Model ):
         else:
             self.user_id = 'u'
             
-        
+# M-2-M relationship between user and content
+rating_contents_table = db.Table('rating_contents_table',
+    db.Column('user_id', db.Integer, db.foreignKey('user.user_id')),
+    db.Column('content_id', db.Integer, db.ForeignKey('content.content_id'))
+)
+
+class Rating( db.Model ):
+    
+    user_id = db.Column( db.Integer, db.ForeignKey("user.user_id"), nullable=True )
+    
+    content_rating = db.Column( db.Integer(2) )
+    
+    ratings = db.relationship('Content',
+        secondary = rating_contents_table,
+        lazy='subquery',
+        backref=db.backref('ratings', lazy=True))
+
+    def set_rating(self,cid,rating):
+        to_update = rating_contents_table.c.query.filter_by(content_id = cid).first()
+        to_update.content_rating = rating
+
+    def get_rating(self,uid):
+        return self.ratings.filter((rating_contents_table.c.user_id == uid)
+        & (rating_contents_table.c.content_id == self.content_id)).first()
+    
+    def get_all_rating_q(self):
+        return self.ratings.filter(rating_contents_table.c.content_id == self.content_id)
+
+    def get_rating_count(self):
+        return self.get_all_rating_q.count()
+
+    def get_all_rating(self):
+        return self.get_all_rating_q.all()
+            
+
+
     
 #=============================#
 # END OF TABLE INITIALIZATION #
