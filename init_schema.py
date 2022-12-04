@@ -122,6 +122,18 @@ class Content( db.Model ):
     def find(name, type):
         return Content.query.filter((Content.title == name) & (Content.content_type == type)).first()
 
+    def get_all_rating_q(self):
+        return self.ratings.filter(rating_contents_table.c.content_id == self.content_id)
+
+    def get_rating_count(self):
+        return self.get_all_rating_q.count()
+
+    def get_all_rating(self):
+        return self.get_all_rating_q.all()
+
+    def add(self, uid, rating):
+        rating = Rating(uid, rating)
+        self.ratings.append(self.entry)
     
 # M-2-M relationship between list and content
 list_contents_table = db.Table('list_contents_table',
@@ -194,10 +206,14 @@ class Rating( db.Model ):
     
     content_rating = db.Column( db.Integer(2) )
     
-    ratings = db.relationship('Content',
+    ratings = db.relationship('User',
         secondary = rating_contents_table,
         lazy='subquery',
         backref=db.backref('ratings', lazy=True))
+
+    def __init__(self, uid, rating):
+        self.user_id = uid
+        self.content_rating = rating
 
     def set_rating(self,cid,rating):
         to_update = rating_contents_table.c.query.filter_by(content_id = cid).first()
