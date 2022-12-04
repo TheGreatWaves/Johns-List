@@ -483,20 +483,11 @@ def edit_content(content_type, content_title):
                 flash('This content has its own page already', 'danger')
                 return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
             
-        # Make edits to the content
-        from sqlalchemy import update
-        stmt = (
-            update(Content).
-            where(Content.content_id == cid).
-            values(title=content_title,synopsis = content_synopsis, poster=content_img)
-        )
-        
+        # Update content    
         content = Content.query.filter(Content.content_id == cid).first()
         content.title = content_title
         content.synopsis = content_synopsis
         content.poster = content_img
-        
-        db.session.execute(stmt)
         db.session.commit()
         
         # Success message

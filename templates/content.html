@@ -29,6 +29,14 @@ a.default:hover {
     color: #0E0E0E;
 }
 
+button.edit {
+    margin-left: 10px; 
+    width: 90%; 
+    background-color: transparent; 
+    color: #AAAAAA; 
+    border-color: #AAAAAA
+}
+
 </style>
 
 {% endblock %}
@@ -46,7 +54,16 @@ a.default:hover {
     <div class="row">
         <!-- Top row containing content title  -->
         <div class="col">
-            <h2>{{ content.title }}</h2>
+            <div class="row">
+                <div class="col">
+                    <h2>{{ content.title }}</h2>
+                </div>
+                <div class="col-md-1 text-end" style="margin: auto;">
+                    <form action="" method = "POST">
+                        <button class="btn edit" type="submit">Edit</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
     <br>
@@ -60,15 +77,10 @@ a.default:hover {
             <div class="row text-center" style="margin-top: 5px">
                 <a class="btn default" style="margin-left: 10px; width: 94%;" href="{{ url_for('list_add_content', content_title=content.title, content_type=content.content_type) }}" role="button">Add to list</a>
             </div>
-            <div class="row text-center" style="margin-top: 5px">
-                <form action="" method = "POST">
-                    <button class="btn default" style="margin-left: 10px; width: 94%;" type="submit" >Edit</button>
-                </form>
-            </div>
         </div>
 
         <!-- Right column -->
-        <div class="col-sm-8 well">
+        <div class="col-sm-9 well">
             <div class="well" style="margin-top: 1em">
             <p class="sub-heading">Synopsis</p>
             <hr>
