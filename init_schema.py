@@ -166,6 +166,10 @@ class List( db.Model ):
     def add(self, content):
         if not self.has_content(content):
             self.contents.append(content)
+            
+    def remove(self, content):
+        if self.has_content(content):
+            self.contents.remove(content)
     
     def __init__(self, owner_id, owner_class):
         

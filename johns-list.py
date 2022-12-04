@@ -55,6 +55,12 @@ def whoami():
         return None
     return User.query.filter_by(username=session['username']).first()
 
+def is_user(user_name):
+    if not logged_in():
+        return False
+    
+    return whoami_username() == user_name
+
 #=========================================#
 # INITILIAZE ENTRY POINTS BELOW THIS LINE #
 #=========================================#
@@ -527,48 +533,55 @@ def list(owner, owner_name, list_name):
         list = None
         name = None
         
-        if owner=="user":
-            
-            user = User.query.filter_by(username=owner_name).first()
-            
-            if user is None:
-                flash('User not found', 'danger')
-                return redirect('/')
-            
-            if list_name=="watchlist":
-                list = user.lists[0]
-            elif list_name=="completed":
-                list = user.lists[1]
-            else:
-                flash('Error finding list', 'danger')
-                return redirect('/')
-            
-            # Set owner name
-            name = user.username
-            
-        elif owner=="group":
-            
-            group = Group.query.filter(Group.name==owner_name).first()
-            
-            if group is None:
-                flash('Group not found', 'danger')
-                return redirect('/')
-            
-            if list_name=="watchlist":
-                list = group.lists[0]
-            elif list_name=="completed":
-                list = group.lists[1]
-            else:
-                flash('Error finding list', 'danger')
-                return redirect('/')
-            
-            # Set owner name
-            name = group.name
+        # Owner can either be a group or user
+        list_owner = User.query.filter_by(username=owner_name).first() \
+            or Group.query.filter(Group.name==owner_name).first()
         
-        return render_template('list.html', owner_name=name, list=list)
+        # No owner found
+        if list_owner is None:
+            flash('User not found', 'danger')
+            return redirect('/')
+        
+        # Get the list
+        if list_name=="watchlist":
+            list = list_owner.lists[List.WATCH_LIST]
+        elif list_name=="completed":
+            list = list_owner.lists[List.COMPLETED_LIST]
+        else:
+            flash('Error finding list', 'danger')
+            return redirect('/')
+        
+        name = list_owner.username if hasattr(list_owner, "username") else list_owner.name
+    
+        return render_template('list.html', owner_name=name, list=list, is_owner=is_user(owner_name))
+    
     elif request.method == 'POST':
-        return render_template('list.html')
-    return render_template('list.html')
+        
+         # Owner can either be a group or user
+        list_owner = User.query.filter_by(username=owner_name).first() \
+            or Group.query.filter(Group.name==owner_name).first()
+            
+        watchlist = list_name=="watchlist"
+        
+        # Get content id from button
+        content_id = request.form.get('complete') or request.form.get('remove')
+        content = Content.query.filter_by(content_id=content_id).first()
+        
+        if watchlist:
+            if 'complete' in request.form:
+                list_owner.lists[List.WATCH_LIST].remove(content)
+                list_owner.lists[List.COMPLETED_LIST].add(content)
+                db.session.commit()
+            elif 'remove' in request.form:
+                list_owner.lists[List.WATCH_LIST].remove(content)
+                db.session.commit()
+        else:
+            if 'remove' in request.form:
+                list_owner.lists[List.COMPLETED_LIST].remove(content)
+                db.session.commit()
+        
+        return redirect(url_for('list', owner=owner, owner_name=owner_name, list_name=list_name))
+    return redirect(url_for('list', owner=owner, owner_name=owner_name, list_name=list_name))
     
     
 #=========================================#

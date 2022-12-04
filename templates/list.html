@@ -1,7 +1,37 @@
 {% extends 'base.html' %}
 
 {% block style %}
-<link rel="stylesheet" href={{ url_for('static', filename="css/style.css") }}>
+<link rel="stylesheet" href={{ url_for('static', filename="css/style.css" ) }}>
+
+<style>
+button[type=submit].remove {
+    display: block; 
+    width: 100%;
+    background-color: transparent;
+    color: #AAAAAA;
+    border-color: #0E0E0E;
+}
+
+button[type=submit].remove:hover {
+    background-color: rgb(156, 0, 31);
+    color: #0E0E0E;
+}
+
+button[type=submit].complete {
+    display: block; 
+    width: 100%;
+    background-color: transparent;
+    color: #AAAAAA;
+    border-color: #0E0E0E;
+}
+
+button[type=submit].complete:hover {
+    background-color: rgb(0, 138, 85);
+    color: #0E0E0E;
+}
+</style>
+
+
 {% endblock %}
 
 {% block title %}
@@ -10,21 +40,44 @@
 
 {% block content %}
 
-<h1 class="default-colour">{{ owner_name }}'s {{ list.name }}</h1>
+{% set is_completed_list = list.name=='completed' %}
 
-<div class="row">
-{% for content in list.contents %}
-<div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
-    <div class="card-img-top d-flex align-items-center" style="background-color: #1C1C1C;">
-      <div>
-        <!-- Content image -->
-        <img class="img-fluid rounded" src="{{ content.poster }}" alt="content_img" height="120px" width="150px">
+<h1 class="default-colour">{{ owner_name }}'s {{ list.name }}</h1>
+  {% for content in list.contents %}
+  <div class="row" style="margin-bottom: 5px; background-color: #1C1C1C;">
+    
+    <!-- Content Poster -->
+    <div class="col">
+      <a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}">
+        <img class="img-fluid rounded" src="{{ content.poster }}" alt="content_img" width="120px" height="150px" a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}">
+      </a>
+    </div>
+
+    <!-- Content Title -->
+    <div class="col-10 position-relative justify-content-center" style="background-color: transparent">
+      <div class="card justify-content-center" style="height: 100%; width: 100%; background-color: transparent; border-color: transparent;">
+        <p class="default-text-color">{{ content.title }} ({{ content.content_type }})</p>
       </div>
-      <p class="col p-2 m-0 default-text-color">{{ content.title }} ({{ content.content_type }})</p>
+
+      <!-- Make clickable -->
       <a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}" class="btn stretched-link"></a>
     </div>
+
+    <!--  -->
+    <div class="col">
+      <div class="card justify-content-center" style="height: 100%; width: 100%; background-color: transparent; border-color: transparent;">
+        {% if is_owner %}
+        <form action="" method="POST">
+          
+          {% if not is_completed_list  %}
+          <button class="btn complete" type="submit" name="complete" value="{{ content.content_id }}" style="margin-bottom: 5px;">Complete</button>
+          {% endif %}
+          <button class="btn remove" type="submit" name="remove" value="{{ content.content_id }}">Remove</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
   </div>
-{% endfor %}
-</div>
+  {% endfor %}
 
 {% endblock %}
