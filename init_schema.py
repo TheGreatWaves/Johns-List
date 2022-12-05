@@ -134,7 +134,15 @@ class Content( db.Model ):
     def add(self, uid, rating):
         rating = Rating(uid, rating)
         self.ratings.append(self.entry)
-    
+
+    def set_rating(self,cid,rating):
+        to_update = rating_contents_table.c.query.filter_by(content_id = cid).first()
+        to_update.content_rating = rating
+
+    def get_rating(self,uid):
+        return self.ratings.filter((rating_contents_table.c.user_id == uid)
+        & (rating_contents_table.c.content_id == self.content_id)).first()
+
 # M-2-M relationship between list and content
 list_contents_table = db.Table('list_contents_table',
     db.Column('list_id', db.Integer, db.ForeignKey('list.list_id')),
@@ -214,26 +222,6 @@ class Rating( db.Model ):
     def __init__(self, uid, rating):
         self.user_id = uid
         self.content_rating = rating
-
-    def set_rating(self,cid,rating):
-        to_update = rating_contents_table.c.query.filter_by(content_id = cid).first()
-        to_update.content_rating = rating
-
-    def get_rating(self,uid):
-        return self.ratings.filter((rating_contents_table.c.user_id == uid)
-        & (rating_contents_table.c.content_id == self.content_id)).first()
-    
-    def get_all_rating_q(self):
-        return self.ratings.filter(rating_contents_table.c.content_id == self.content_id)
-
-    def get_rating_count(self):
-        return self.get_all_rating_q.count()
-
-    def get_all_rating(self):
-        return self.get_all_rating_q.all()
-            
-
-
     
 #=============================#
 # END OF TABLE INITIALIZATION #
