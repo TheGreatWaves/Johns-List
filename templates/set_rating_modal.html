@@ -1,0 +1,85 @@
+{% include 'content.html' %}
+
+
+{% block style %}
+
+<style>
+  
+    button.edit {
+        margin-left: 10px;
+        width: 90%;
+        background-color: transparent;
+        color: #AAAAAA;
+        border-color: #AAAAAA
+    }
+
+    a.cancel {
+        background-color: transparent;
+        color: #AAAAAA;
+        border-color: #AAAAAA
+    }
+
+    a.default:hover,
+    a.cancel:hover,
+    a.group:hover {
+        background-color: #53518e !important;
+        color: #0E0E0E !important;
+    }
+
+    input[type=text],
+    select,
+    textarea {
+        width: 100% !important;
+        padding: 12px !important;
+        border: 1px solid #ccc !important;
+        color: #AAAAAA !important;
+        background-color: #131313 !important;
+        border-radius: 4px !important;
+        resize: vertical !important;
+    }
+
+    label {
+        padding: 12px 12px 12px 0;
+        display: inline-block;
+        color: #AAAAAA;
+    }
+</style>
+
+{% endblock %}
+
+{% block modal %}
+<div class="modal" id="set_rating_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="background-color:#1C1C1C">
+            <div class="modal-header justify-content-center">
+                <h5 class="modal-title default-text-color" id="" style="text-align: center;">How do you rate out of 10?</h5>
+            </div>
+            <div class="modal-body" style="align-items:center">
+                <form action="" method="POST">
+                <div class="slider" style="position:relative; left:160px; top:20px">
+                    <input type="range" min="0" max="10" value="10" name="slider" oninput="rangeValue.innerText = this.value">
+                    <p id="rangeValue" style="position:relative; left:58px">10</p>
+                </div>
+                <div class="col-md-1 text-end" style="position:relative; top:12px; left:-10px; margin: auto; width: 30%;">
+                        <button class="btn edit" type="submit">Submit rating</button>
+                    </form>
+                </div>
+            </div>
+
+                
+            <div class="modal-footer">
+                <a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}"
+                    class="btn cancel">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    $(document).ready(function () {
+        $("#set_rating_modal").modal("show")
+    })
+</script>
+{% endblock %}
