@@ -645,24 +645,41 @@ def list_add_modal(content_type, content_title):
         return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
 
 @app.route('/content/<content_type>/<content_title>/rate', methods=['GET','POST'])
-def rate_content(content_type, content_title, rating):
+def rate_content(content_type, content_title):
     if request.method == 'GET':
         # Handle login
         if not logged_in():
-            session['last_page'] = url_for('rate_content', content_type=content_type, content_title=content_title)
+            session['last_page'] = url_for('content', content_type=content_type, content_title=content_title)
             return redirect(url_for('signin'))
+        
+        content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        if content:
+            return render_template('set_rating_modal.html',content=content)
+        else:
+            return render_template('content', content_type=content_type, content_title=content_title)
         
     elif request.method == 'POST':  
 
         user = whoami()
         content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
-
+        rating = request.form["slider"]
         if content:
-            if not content.ratings.get_rating(user.id):
-                content.ratings.add(user.id,rating)
+            if not content.get_rating(user.user_id):
+                content.add(user.user_id,rating)
+                return redirect
             else:
-                content.ratings.set_rating(user.id,rating)
+                content.set_rating(user.user_id,rating)
+                return redirect('/')
 
+@app.route("/content/<content_type>/<content_title>/rate_modal/", methods=['GET', 'POST'])
+def set_rating_modal(content_type, content_title):
+    if request.method == 'GET':
+        #content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        return redirect(url_for('rate_content',content_type=content_type, content_title=content_title))
+    
+    if request.method == 'POST':
+        #content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        return redirect(url_for('rate_content',content_type=content_type, content_title=content_title))
 
 #=========================================#
 #    END OF ENTRY POINT INITIALIZATION    #

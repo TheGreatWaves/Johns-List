@@ -150,7 +150,7 @@ class Content( db.Model ):
         to_update.content_rating = rating
 
     def get_rating(self,uid):
-        return self.ratings.filter((rating_contents_table.c.user_id == uid)
+        return rating_contents_table.c.query.filter((rating_contents_table.c.user_id == uid)
         & (rating_contents_table.c.content_id == self.content_id)).first()
 
 # M-2-M relationship between list and content
