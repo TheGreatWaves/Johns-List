@@ -77,8 +77,10 @@ class Group( db.Model ):
     group_id    = db.Column('group_id', db.Integer, primary_key = True, autoincrement = True)
     group_class = db.Column('group_class', db.CHAR(1), primary_key = True, default='g')
     name        = db.Column(db.String(20), unique=True, nullable=False)
+    owner_id    = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    info        = db.Column( db.String(2000) )
     size        = db.Column(db.Integer, default=0)
-    user_id     = db.Column(db.Integer, db.ForeignKey('user.user_id'))  
+    img_url     = db.Column( db.String(300) )
 
     members = db.relationship('User',
         secondary = group_member_table,
@@ -106,12 +108,16 @@ class Group( db.Model ):
         return member is not None
     
 
-    def __init__(self, name):
+    def __init__(self, name, owner: User):
         self.name = name
+        self.owner_id = owner.user_id
+        self.add_member(owner)
         
         # Add lists
         group_watch_list = List(self.group_id, 'g', 'watchlist')
         group_completed_list = List(self.group_id, 'g', 'completed')
+        self.img_url = None
+        self.info = f"We're {name} :)"
         
         self.lists.append(group_watch_list)        # At index 0
         self.lists.append(group_completed_list)    # At index 1

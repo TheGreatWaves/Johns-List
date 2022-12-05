@@ -48,13 +48,21 @@ def add_users():
         
 
 def add_groups():
+
+    # =================== Lore members =================== #
+        
+    john    = User.query.filter_by(username='john').first()
+    bob     = User.query.filter_by(username='bob').first()
+    jenny   = User.query.filter_by(username='jenny').first()
+
+    # ==================================================== #
     
     groups_to_add = \
     [
-        Group(name='Fun big group'),
-        Group(name='another group'),
-        Group(name='lover group'),
-        Group(name='secret friendship'),
+        Group(name='Fun big group', owner=john),
+        Group(name='lonely group', owner=bob),
+        Group(name='lover group', owner=jenny),
+        Group(name='secret friendship', owner=john),
     ]
     
     for group in groups_to_add:
@@ -63,39 +71,33 @@ def add_groups():
     for group in groups:
         db.session.add(group)
         
-        
-    # =================== Lore members =================== #
-        
-    john    = User.query.filter_by(username='john').first()
-    bob     = User.query.filter_by(username='bob').first()
-    jenny   = User.query.filter_by(username='jenny').first()
-        
     # =================== Big group =================== #
 
     big_group = Group.query.filter_by(name='Fun big group').first()
     
     for user in users:
-        big_group.add_member(user)
+        if user.name != 'john':
+            big_group.add_member(user)
         
     # ================ Some other group ================ #
     
-    lonely_group = Group.query.filter_by(name='another group').first()
+    # lonely_group = Group.query.filter_by(name='another group').first()
     
-    lonely_group.add_member(bob)
+    # lonely_group.add_member(bob)
     
     # ================== Lover group ================== #
     
     lover_group = Group.query.filter_by(name='lover group').first()
     
     lover_group.add_member(bob)
-    lover_group.add_member(jenny)
+    # lover_group.add_member(jenny)
     
     # ================== Plot twist ================== #
     
     secret_friendship = Group.query.filter_by(name='secret friendship').first()
     
     secret_friendship.add_member(bob)
-    secret_friendship.add_member(john)
+    # secret_friendship.add_member(john)
     
 def add_contents():
     contents_to_add = \

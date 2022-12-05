@@ -264,8 +264,6 @@ def create_group():
         # Add current user to the newly created group
         new_group.add_member(whoami())
 
-        # Save changes
-        db.session.add(new_group)
         db.session.commit()
 
         flash(f'New group [{group_name}] successfully created!', 'success')
