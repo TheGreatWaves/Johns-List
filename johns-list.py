@@ -240,7 +240,7 @@ def create_group():
         new_group = Group(name=group_name)
     
         # Add current user to the newly created group
-        new_group.members.append(whoami())
+        new_group.add_member(whoami())
 
         # Save changes
         db.session.add(new_group)

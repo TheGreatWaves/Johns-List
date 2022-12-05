@@ -38,14 +38,15 @@ group_member_table = db.Table('group_member',
 
 # User table
 class User( db.Model ):
-    user_id = db.Column('user_id', db.Integer, primary_key = True, autoincrement=True)
-    user_class = db.Column('user_class', db.CHAR(1), primary_key = True, default='u')
-    name = db.Column(db.String(20), default='None')
-    email = db.Column(db.String(255), unique=True, nullable=False)
-    username = db.Column(db.String(20), unique=True, nullable=False)
-    password = db.Column(db.String(255))
+    user_id         = db.Column('user_id', db.Integer, primary_key = True, autoincrement=True)
+    user_class      = db.Column('user_class', db.CHAR(1), primary_key = True, default='u')
+    name            = db.Column(db.String(20), default='None')
+    email           = db.Column(db.String(255), unique=True, nullable=False)
+    username        = db.Column(db.String(20), unique=True, nullable=False)
+    password        = db.Column(db.String(255))
     registered_date = db.Column(db.Date, default=date.today())
-    profile_pic = db.Column(db.LargeBinary)
+    bio             = db.Column(db.String(1000), default='There is nothing noteworthy about me.')
+    profile_pic_url = db.Column( db.String(300) )
     
     lists = db.relationship('List', lazy='select',
         backref=db.backref('user', lazy='joined'))
@@ -76,7 +77,7 @@ class Group( db.Model ):
     group_id    = db.Column('group_id', db.Integer, primary_key = True, autoincrement = True)
     group_class = db.Column('group_class', db.CHAR(1), primary_key = True, default='g')
     name        = db.Column(db.String(20), unique=True, nullable=False)
-    size        = db.Column(db.Integer, default=1)
+    size        = db.Column(db.Integer, default=0)
     user_id     = db.Column(db.Integer, db.ForeignKey('user.user_id'))  
 
     members = db.relationship('User',
@@ -119,6 +120,12 @@ class Group( db.Model ):
         self.members.append(user)
         self.size = self.size + 1
 
+# M-2-M relationship between user and content
+rating_contents_table = db.Table('rating_contents_table',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.user_id')),
+    db.Column('content_id', db.Integer, db.ForeignKey('content.content_id'))
+)
+
 class Content( db.Model ):
     content_id = db.Column( 'content_id', db.Integer, primary_key = True, autoincrement = True )
     title = db.Column( db.String(100), nullable=False )
@@ -135,7 +142,7 @@ class Content( db.Model ):
     def __init__(self, title, content_type):
         self.title = title
         self.content_type = content_type
-        self.poster = url_for('static', filename='place_holder_img.png')
+        self.poster = None
         self.synopsis = "No synopsis has been provided."
         
     def find(name, type):
@@ -164,8 +171,9 @@ class Content( db.Model ):
         to_update.content_rating = rating
 
     def get_rating(self,uid):
-        return self.ratings.filter((rating_contents_table.c.user_id == uid)
-        & (rating_contents_table.c.content_id == self.content_id)).first()
+        return self.ratings\
+            .filter((rating_contents_table.c.user_id == uid) & (rating_contents_table.c.content_id == self.content_id))\
+            .first()
 
 # M-2-M relationship between list and content
 list_contents_table = db.Table('list_contents_table',
