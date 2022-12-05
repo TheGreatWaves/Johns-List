@@ -62,6 +62,28 @@ def is_user(user_name):
 # INITILIAZE ENTRY POINTS BELOW THIS LINE #
 #=========================================#
 
+"""
+/
+/about/
+/signup/
+/signin/
+/signout/
+/user/<username>
+/create_group/
+/group/<group_name>/join
+/group/<group_name>/leave
+/group/<group_name>
+/search_group/
+/create_content/
+/content/<content_type>/<content_title>
+/content/search/
+/content/<content_type>/<content_title>/edit
+/content/<content_type>/<content_title>/me/add
+/content/<content_type>/<content_title>/<group_id>/add
+/<owner>/<owner_name>/<list_name>/
+/content/<content_type>/<content_title>/modal/
+"""
+
 # Index
 @app.route("/")
 def index():
@@ -298,6 +320,19 @@ def join_group(group_name):
     db.session.commit()
 
     flash('Joined group!', 'success')
+
+    return redirect(url_for('group', group_name=group_name))
+
+@app.route('/group/<group_name>/edit')
+def edit_group(group_name):
+    if request.method == 'GET':
+        found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        
+        if not logged_in():
+            session['last_page'] = url_for('edit_group',content_type=content_type, content_title=content_title)
+            return redirect(url_for('signin'))
+        
+        return render_template('edit_group.html', group_name=group_name)
 
     return redirect(url_for('group', group_name=group_name))
 
