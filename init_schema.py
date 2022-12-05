@@ -38,14 +38,15 @@ group_member_table = db.Table('group_member',
 
 # User table
 class User( db.Model ):
-    user_id = db.Column('user_id', db.Integer, primary_key = True, autoincrement=True)
-    user_class = db.Column('user_class', db.CHAR(1), primary_key = True, default='u')
-    name = db.Column(db.String(20), default='None')
-    email = db.Column(db.String(255), unique=True, nullable=False)
-    username = db.Column(db.String(20), unique=True, nullable=False)
-    password = db.Column(db.String(255))
+    user_id         = db.Column('user_id', db.Integer, primary_key = True, autoincrement=True)
+    user_class      = db.Column('user_class', db.CHAR(1), primary_key = True, default='u')
+    name            = db.Column(db.String(20), default='None')
+    email           = db.Column(db.String(255), unique=True, nullable=False)
+    username        = db.Column(db.String(20), unique=True, nullable=False)
+    password        = db.Column(db.String(255))
     registered_date = db.Column(db.Date, default=date.today())
-    profile_pic = db.Column(db.LargeBinary)
+    bio             = db.Column(db.String(1000), default='There is nothing noteworthy about me.')
+    profile_pic_url = db.Column( db.String(300) )
     
     lists = db.relationship('List', lazy='select',
         backref=db.backref('user', lazy='joined'))
@@ -54,7 +55,14 @@ class User( db.Model ):
         self.email = email
         self.username = username
         self.password = password
-
+        
+        # Create the watchlist and completed list for user
+        watch_list = List(self.user_id, 'u', 'watchlist')
+        completed_list = List(self.user_id, 'u', 'completed')
+        
+        self.lists.append(watch_list)       # At index 0
+        self.lists.append(completed_list)   # At index 1
+        
     def get_all_groups(self):
         return Group.query.join(group_member_table)\
             .join(User)\
@@ -66,11 +74,11 @@ class User( db.Model ):
 
 # Group table
 class Group( db.Model ):
-    group_id = db.Column('group_id', db.Integer, primary_key = True, autoincrement = True)
+    group_id    = db.Column('group_id', db.Integer, primary_key = True, autoincrement = True)
     group_class = db.Column('group_class', db.CHAR(1), primary_key = True, default='g')
-    name = db.Column(db.String(20), unique=True, nullable=False)
-    size = db.Column(db.Integer, default=1)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))  
+    name        = db.Column(db.String(20), unique=True, nullable=False)
+    size        = db.Column(db.Integer, default=0)
+    user_id     = db.Column(db.Integer, db.ForeignKey('user.user_id'))  
 
     members = db.relationship('User',
         secondary = group_member_table,
@@ -96,14 +104,21 @@ class Group( db.Model ):
             .first() 
             
         return member is not None
+    
 
     def __init__(self, name):
         self.name = name
-# M-2-M relationship between user and content
-rating_contents_table = db.Table('rating_contents_table',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.user_id')),
-    db.Column('content_id', db.Integer, db.ForeignKey('content.content_id'))
-)
+        
+        # Add lists
+        group_watch_list = List(self.group_id, 'g', 'watchlist')
+        group_completed_list = List(self.group_id, 'g', 'completed')
+        
+        self.lists.append(group_watch_list)        # At index 0
+        self.lists.append(group_completed_list)    # At index 1
+        
+    def add_member(self, user):
+        self.members.append(user)
+        self.size = self.size + 1
 
 class Content( db.Model ):
     content_id = db.Column( 'content_id', db.Integer, primary_key = True, autoincrement = True )
@@ -121,37 +136,34 @@ class Content( db.Model ):
     def __init__(self, title, content_type):
         self.title = title
         self.content_type = content_type
-        self.poster = url_for('static', filename='place_holder_img.png')
+        self.poster = None
         self.synopsis = "No synopsis has been provided."
         
     def find(name, type):
         return Content.query.filter((Content.title == name) & (Content.content_type == type)).first()
 
-    ratings = db.relationship('User',
-        secondary = rating_contents_table,
-        lazy='subquery',
-        backref=db.backref('ratings', lazy=True))
+    ratings = db.relationship('Rating', backref='content')
 
     def get_all_rating_q(self):
-        return self.ratings.filter(rating_contents_table.c.content_id == self.content_id)
+        return self.query.join(Rating)
 
     def get_rating_count(self):
-        return self.get_all_rating_q.count()
+        return self.get_all_rating_q().count()
 
     def get_all_rating(self):
-        return self.get_all_rating_q.all()
+        return self.get_all_rating_q().all()
 
-    def add(self, uid, rating):
-        rating = Rating(uid, rating)
-        self.ratings.append(self.entry)
+    def add(self, uid, score):
+        rating = Rating(uid, score)
+        self.ratings.append(rating)
+        
+    def get_rating(self,uid):
+        return self.get_all_rating_q().filter_by(user_id=uid).first()
 
-    def set_rating(self,uid,rating):
-        to_update = rating_contents_table.c.query.filter_by(user_id = uid).first()
+    def set_rating( self, uid, rating ):
+        to_update = self.get_rating(uid)
         to_update.content_rating = rating
 
-    def get_rating(self,uid):
-        return rating_contents_table.c.query.filter((rating_contents_table.c.user_id == uid)
-        & (rating_contents_table.c.content_id == self.content_id)).first()
 
 # M-2-M relationship between list and content
 list_contents_table = db.Table('list_contents_table',
@@ -201,9 +213,10 @@ class List( db.Model ):
         if self.has_content(content):
             self.contents.remove(content)
     
-    def __init__(self, owner_id, owner_class):
+    def __init__(self, owner_id, owner_class, name):
         
         self.owner_class = owner_class
+        self.name = name
         
         if owner_class=='u':
             self.user_id = owner_id
@@ -216,25 +229,27 @@ class List( db.Model ):
 
 class Rating( db.Model ):
     rat_id = db.Column( db.Integer, primary_key = True, autoincrement = True)
-    
     user_id = db.Column( db.Integer, db.ForeignKey("user.user_id"), nullable=True )
+    content_id = db.Column( db.Integer, db.ForeignKey("content.content_id"), nullable=False )
     
     content_rating = db.Column( db.Integer())
 
-    def __init__(self, uid, rating, rat):
+    def __init__(self, uid, rating):
         self.user_id = uid
         self.content_rating = rating
-        self.rat_id = rat
     
 #=============================#›
 # END OF TABLE INITIALIZATION #
 #=============================#
 
+def create():
+    db.drop_all()
+    db.create_all()
+
 # Initialize all tables (Note this will also drop all previously existing tables)
 if __name__ == '__main__':  
     with app.app_context():
-        db.drop_all()
-        db.create_all()
+        create()
 
 
 

@@ -110,7 +110,13 @@
 <!-- Left column -->
 <div class="col-sm-3 well">
     <div class="well">
+        {% if content.poster %}
         <img src="{{ content.poster }}" class="center rounded" alt="poster">
+        {% else %}
+        <img src="{{ url_for('static', filename='place_holder_img.png') }}" class="center rounded" alt="poster">
+        {% endif %}
+
+        
     </div>
 
     <!-- Add to list button -->

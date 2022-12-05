@@ -86,7 +86,7 @@
 
     <!-- Profile picture -->
     <div class="well">
-        <img src="{{ url_for('static', filename='place_holder_img.png' ) }}" class="center img-thumbnail" alt="poster">
+        <img src="{{ user.profile_pic_url }}" class="center rounded" alt="poster" style="width: 100%;">
     </div>
 
     <hr>
@@ -109,7 +109,7 @@
         <div class="col-md-8 well" style="margin-top: 1em">
             <p class="sub-heading">About me</p>
             <hr>
-            <p style="white-space: pre-line">What??</p>
+            <p style="white-space: pre-line">{{ user.bio }}</p>
         </div>
         <div class="col-md-4 well" style="margin-top: 1em">
 
