@@ -15,7 +15,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import yaml
 
 # App, db and tables
-from init_schema import app, db, User, Group, group_member_table, Content, List
+from init_schema import app, db, User, Group, group_member_table, Content, List, Rating
 
 # Load credentials
 cred = yaml.load(open('cred.yaml'), Loader=yaml.Loader)
@@ -261,6 +261,9 @@ def create_group():
         # Create the new group
         new_group = Group(name=group_name)
     
+        # Save changes
+        db.session.add(new_group)
+        
         # Add current user to the newly created group
         new_group.add_member(whoami())
 
@@ -658,24 +661,52 @@ def list_add_modal(content_type, content_title):
         return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
 
 @app.route('/content/<content_type>/<content_title>/rate', methods=['GET','POST'])
-def rate_content(content_type, content_title, rating):
+def rate_content(content_type, content_title):
     if request.method == 'GET':
         # Handle login
         if not logged_in():
-            session['last_page'] = url_for('rate_content', content_type=content_type, content_title=content_title)
+            session['last_page'] = url_for('content', content_type=content_type, content_title=content_title)
             return redirect(url_for('signin'))
         
+        content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        if content:
+            return render_template('set_rating_modal.html',content=content)
+        else:
+            return render_template('content', content_type=content_type, content_title=content_title)
+        
     elif request.method == 'POST':  
+        
+        if not logged_in():
+            session['last_page'] = url_for('content', content_type=content_type, content_title=content_title)
+            return redirect(url_for('signin'))
 
         user = whoami()
         content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
-
+        rating = request.form["slider"]
+        
         if content:
-            if not content.ratings.get_rating(user.id):
-                content.ratings.add(user.id,rating)
-            else:
-                content.ratings.set_rating(user.id,rating)
+            action = content.set_rating(user.user_id, rating)
+            
+            if action == Rating.ADDED_RATING:
+                flash('Rating added', 'success')
+            elif action == Rating.EDITTED_RATING:
+                flash('Rating editted', 'success')
+            
+            db.session.commit()
+            return redirect( url_for('content', content_type=content_type, content_title=content_title))
+                
+        flash('no content found', 'danger')
+        return redirect('/')
 
+@app.route("/content/<content_type>/<content_title>/rate_modal/", methods=['GET', 'POST'])
+def set_rating_modal(content_type, content_title):
+    if request.method == 'GET':
+        #content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        return redirect(url_for('rate_content',content_type=content_type, content_title=content_title))
+    
+    if request.method == 'POST':
+        #content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        return redirect(url_for('rate_content',content_type=content_type, content_title=content_title))
 
 #=========================================#
 #    END OF ENTRY POINT INITIALIZATION    #

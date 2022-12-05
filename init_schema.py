@@ -126,12 +126,6 @@ class Group( db.Model ):
         self.members.append(user)
         self.size = self.size + 1
 
-# M-2-M relationship between user and content
-rating_contents_table = db.Table('rating_contents_table',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.user_id')),
-    db.Column('content_id', db.Integer, db.ForeignKey('content.content_id'))
-)
-
 class Content( db.Model ):
     content_id = db.Column( 'content_id', db.Integer, primary_key = True, autoincrement = True )
     title = db.Column( db.String(100), nullable=False )
@@ -154,32 +148,36 @@ class Content( db.Model ):
     def find(name, type):
         return Content.query.filter((Content.title == name) & (Content.content_type == type)).first()
 
-    ratings = db.relationship('User',
-        secondary = rating_contents_table,
-        lazy='subquery',
-        backref=db.backref('ratings', lazy=True))
+    ratings = db.relationship('Rating', backref='content')
 
     def get_all_rating_q(self):
-        return self.ratings.filter(rating_contents_table.c.content_id == self.content_id)
+        return self.query.join(Rating)
 
     def get_rating_count(self):
-        return self.get_all_rating_q.count()
+        return self.get_all_rating_q().count()
 
     def get_all_rating(self):
-        return self.get_all_rating_q.all()
-
-    def add(self, uid, rating):
-        rating = Rating(uid, rating)
-        self.ratings.append(self.entry)
-
-    def set_rating(self,uid,rating):
-        to_update = rating_contents_table.c.query.filter_by(user_id = uid).first()
-        to_update.content_rating = rating
+        return self.get_all_rating_q().all()
 
     def get_rating(self,uid):
-        return self.ratings\
-            .filter((rating_contents_table.c.user_id == uid) & (rating_contents_table.c.content_id == self.content_id))\
-            .first()
+        return Rating.query.filter_by(user_id=uid, content_id=self.content_id).first()
+
+    def add(self, uid, score):
+        rating = Rating(uid, score)
+        self.ratings.append(rating)
+        return rating
+
+    def set_rating( self, uid, score ):
+        
+        rating = self.get_rating(uid)
+        
+        if rating is None:
+            self.add(uid, score)
+            return Rating.ADDED_RATING
+        else:
+            rating.content_rating = score
+            return Rating.EDITTED_RATING
+
 
 # M-2-M relationship between list and content
 list_contents_table = db.Table('list_contents_table',
@@ -245,15 +243,18 @@ class List( db.Model ):
 
 class Rating( db.Model ):
     rat_id = db.Column( db.Integer, primary_key = True, autoincrement = True)
-    
     user_id = db.Column( db.Integer, db.ForeignKey("user.user_id"), nullable=True )
-    
+    content_id = db.Column( db.Integer, db.ForeignKey("content.content_id"), nullable=False )
     content_rating = db.Column( db.Integer())
 
-    def __init__(self, uid, rating, rat):
+    # Some constants
+    ADDED_RATING   = 0
+    EDITTED_RATING = 1
+
+    def __init__(self, uid, rating):
         self.user_id = uid
         self.content_rating = rating
-        self.rat_id = rat
+        
     
 #=============================#›
 # END OF TABLE INITIALIZATION #
