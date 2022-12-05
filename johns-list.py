@@ -508,7 +508,7 @@ def edit_content(content_type, content_title):
         return redirect(url_for('content', content_title=content_title, content_type=content_type))
 
 
-@app.route('/content/<content_type>/<content_title>/add', methods=['GET'])
+@app.route('/content/<content_type>/<content_title>/me/add', methods=['GET'])
 def list_add_content(content_type, content_title):
     
     # Handle login
@@ -523,6 +523,31 @@ def list_add_content(content_type, content_title):
         if not user.lists[List.WATCH_LIST].has_content(content):
             flash(f'Added to watch list', 'success')
             user.lists[List.WATCH_LIST].add(content)
+            db.session.commit()
+        else:
+            flash(f'Content already in list', 'danger')
+            
+    else:
+        flash(f'Action failed', 'danger')
+        
+    return redirect(url_for('content', content_title=content_title, content_type=content_type))
+
+@app.route('/content/<content_type>/<content_title>/<group_id>/add', methods=['GET'])
+def group_list_add_content(content_type, content_title, group_id):
+    
+    # Handle login
+    if not logged_in():
+        session['last_page'] = url_for('group_list_add_content', content_type=content_type, content_title=content_title, group_id=group_id)
+        return redirect(url_for('signin'))
+    
+    print('GPID', group_id)
+    group = Group.query.filter_by(group_id = group_id).first()
+    content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+    
+    if content:
+        if not group.lists[List.WATCH_LIST].has_content(content):
+            flash(f'Content successfully added to {group.name}\'s watch list', 'success')
+            group.lists[List.WATCH_LIST].add(content)
             db.session.commit()
         else:
             flash(f'Content already in list', 'danger')
@@ -589,6 +614,24 @@ def list(owner, owner_name, list_name):
         return redirect(url_for('list', owner=owner, owner_name=owner_name, list_name=list_name))
     return redirect(url_for('list', owner=owner, owner_name=owner_name, list_name=list_name))
     
+@app.route("/content/<content_type>/<content_title>/modal/", methods=['GET', 'POST'])
+def list_add_modal(content_type, content_title):
+    if request.method == 'GET':
+        found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        
+        if found:
+            
+            user_groups = whoami().get_all_groups()\
+                    .order_by(Group.name)\
+                    .all()
+            
+            return render_template('list_add_modal.html', content=found, groups=user_groups)
+        else:
+            flash('Content page not found', 'danger')
+            return redirect('/')
+    
+    elif request.method == 'POST':
+        return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
     
 #=========================================#
 #    END OF ENTRY POINT INITIALIZATION    #

@@ -1,55 +1,164 @@
-{% extends 'base.html' %}
+{% extends 'page_base.html' %}
 
 {% block style %}
-<link rel="stylesheet" href={{ url_for('static', filename="css/style.css") }}>
+<link rel="stylesheet" href={{ url_for('static', filename="css/style.css" ) }}>
+
+<style>
+    p,
+    h1,
+    h2,
+    h3 {
+        color: #AAAAAA;
+    }
+
+    p.sub-heading {
+        font-weight: bold;
+    }
+
+    /* Center image  */
+    .center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+    }
+
+    a.default {
+        background-color: #8885DA;
+    }
+
+    a.default:hover {
+        background-color: #53518e;
+        color: #0E0E0E;
+    }
+
+    a.join,
+    a.edit,
+    a.nice,
+    a.leave {
+        background-color: transparent;
+        color: #AAAAAA;
+        border-color: #AAAAAA;
+        line-height: 15px;
+    }
+
+    a.join:hover,
+    a.edit:hover,
+    a.nice:hover,
+    a.group:hover {
+        background-color: #53518e !important;
+        color: #0E0E0E !important;
+    }
+
+    a.leave:hover {
+        background-color: rgb(156, 0, 31) !important;
+        color: #0E0E0E !important;
+    }
+
+</style>
+
 {% endblock %}
 
 {% block title %}
-<title>JohnsList</title>
+<title>{{ group.name }}</title>
+{% endblock %}
+
+{% block page_title %}
+<div class="col">
+    <div class="row">
+        <div class="col">
+            <h2>{{ group.name }}</h2>
+        </div>
+        
+        {% if not unknown_user %}
+        <div class="col-md-2 text-end" style="margin: auto;">
+            {% if is_member %}
+
+            <!-- TODO: ROUTE THIS! -->
+            <a class="btn edit" href="#" role="button">Edit</a>
+
+            <a class="btn leave" href="{{ url_for('leave_group', group_name=group.name) }}" role="button">Leave</a>
+            {% else %}
+            <a class="btn join" href="{{ url_for('join_group', group_name=group.name) }}" role="button">Join</a>
+            {% endif %}
+        </div>
+        {% endif %}
+       
+        
+        <!-- TODO: ROUTE THIS -->
+        <!-- <div class="col-md-1 text-end" style="margin: auto;">
+            <form action="" method="POST">
+                <button class="btn edit" type="submit">Edit</button>
+            </form>
+        </div> -->
+    </div>
+</div>
 {% endblock %}
 
 {% block content %}
-<h1 class="default-colour">{{ group.name }}</h1>
-
-<!-- If user is already in the group, they will see 'join', otherwise, they will see 'leave' -->
-
-{% if not unknown_user %}
-<div>
-    {% if is_member %}
-    <a class="btn btn-dark" href="{{ url_for('leave_group', group_name=group.name) }}" role="button">Leave</a>
-    {% else %}
-    <a class="btn btn-dark" href="{{ url_for('join_group', group_name=group.name) }}" role="button">Join</a>
-    {% endif %}
-</div>
-{% endif %}
-
-<!-- I don't really know what I'm doing haha -->
-<div class="card" style="width: 18rem; background-color: #0E0E0E;">
-    <div class="card-header text-center" style="background-color: #8885DA; color: #0E0E0E">
-        Members
+<!-- Left column -->
+<div class="col-sm-2 well">
+    <div class="well">
+        <img src="{{ url_for('static', filename='place_holder_img.png' ) }}" class="center img-thumbnail" alt="poster">
     </div>
-    <ul class="list-group list-group-flush" style="background-color: #0E0E0E">
-        {% if members %}
-        {% for member in members %}
-        <li class="list-group-item" style="background-color: #53518e">
-            <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
-                <a class="btn" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E"
-                    href="{{ url_for('user', username=member.username) }}" role="button">{{ member.username }}</a>
-            </div>
-        </li>
-        {% endfor %}
-        {% else %}
-        <li class="list-group-item" style="background-color: #53518e">
-            <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
-                <a class="btn" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E">No Member!</a>
-            </div>
-        </li>
-        {% endif %}
-    </ul>
+
+    <hr>
+    <div class="row">
+        <div class="col text-end">
+            <a class="btn nice" style="width: 100%; height: 25px; line-height: 10px; margin-bottom: 5px;" href="{{ url_for('list', owner='group', owner_name=group.name, list_name=group.lists[0].name) }}" role="button">Watch List</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col text-start">
+            <a class="btn nice" style="width: 100%; height: 25px; line-height: 10px;" href="{{ url_for('list', owner='group', owner_name=group.name, list_name=group.lists[1].name) }}" role="button">Completed List</a>
+        </div>
+    </div>
 </div>
 
-<div>
-    <a class="btn btn-dark" href="{{ url_for('list', owner='group', owner_name=group.name, list_name=group.lists[0].name) }}" role="button">Watch List</a>
-    <a class="btn btn-dark" href="{{ url_for('list', owner='group', owner_name=group.name, list_name=group.lists[1].name) }}" role="button">Completed List</a>
+<!-- Right column -->
+<div class="col well">
+    <div class="row">
+        <div class="col-md-8 well" style="margin-top: 1em">
+            <p class="sub-heading">About us</p>
+            <hr>
+            <p style="white-space: pre-line">What??</p>
+        </div>
+        <div class="col-md-4 well" style="margin-top: 1em">
+
+            <div class="row" style="height: 24px">
+                <div class="col-md-3">
+                    <p class="sub-heading">Members</p>
+                </div>
+
+                {% if is_owner %}
+                <div class="col text-end">
+                    <a class="btn create" href="{{ url_for('create_group') }}" role="button"
+                        style="vertical-align: top; height: 30px;">Create</a>
+                    <a class="btn search" href="{{ url_for('search_group') }}" role="button"
+                        style="vertical-align: top; height: 30px;">Search</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <hr>
+
+            {% if members %}
+            {% for member in members %}
+            <li class="list-group-item" style="background-color: #53518e; margin-bottom: 5px;">
+                <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
+                    <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #1C1C1C;"
+                        href="{{ url_for('user', username=member.username) }}" role="button">{{ member.username }}</a>
+                </div>
+            </li>
+            {% endfor %}
+            {% else %}
+            <li class="list-group-item" style="background-color: #53518e">
+                <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
+                    <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #1C1C1C">No Groups!</a>
+                </div>
+            </li>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock %}

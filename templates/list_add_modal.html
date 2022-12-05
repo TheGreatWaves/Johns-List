@@ -1,0 +1,167 @@
+{% extends 'page_base.html' %}
+
+{% block style %}
+<link rel="stylesheet" href={{ url_for('static', filename="css/style.css" ) }}>
+
+<style>
+    p,
+    h1,
+    h2,
+    h3 {
+        color: #AAAAAA;
+    }
+
+    p.sub-heading {
+        font-weight: bold;
+    }
+
+    /* Center image  */
+    .center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+    }
+
+    a.default {
+        background-color: #8885DA;
+    }
+
+
+
+    button.edit {
+        margin-left: 10px;
+        width: 90%;
+        background-color: transparent;
+        color: #AAAAAA;
+        border-color: #AAAAAA
+    }
+
+    a.cancel {
+        background-color: transparent;
+        color: #AAAAAA;
+        border-color: #AAAAAA
+    }
+
+    a.default:hover,
+    a.cancel:hover,
+    a.group:hover {
+        background-color: #53518e !important;
+        color: #0E0E0E !important;
+    }
+
+    input[type=text],
+    select,
+    textarea {
+        width: 100% !important;
+        padding: 12px !important;
+        border: 1px solid #ccc !important;
+        color: #AAAAAA !important;
+        background-color: #131313 !important;
+        border-radius: 4px !important;
+        resize: vertical !important;
+    }
+
+    label {
+        padding: 12px 12px 12px 0;
+        display: inline-block;
+        color: #AAAAAA;
+    }
+</style>
+
+{% endblock %}
+
+{% block title %}
+<title>{{ content.title }}</title>
+{% endblock %}
+
+
+{% block page_title %}
+<div class="col">
+    <div class="row">
+        <div class="col">
+            <h2>{{ content.title }}</h2>
+        </div>
+
+        <!-- Edit content page -->
+        <div class="col-md-1 text-end" style="margin: auto;">
+            <form action="" method="POST">
+                <button class="btn edit" type="submit">Edit</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Left column -->
+<div class="col-sm-3 well">
+    <div class="well">
+        <img src="{{ content.poster }}" class="center rounded" alt="poster">
+    </div>
+
+    <!-- Add to list button -->
+    {% include 'add_to_list.html' %}
+</div>
+
+<!-- Right column -->
+<div class="col-sm-9 well">
+    <div class="well" style="margin-top: 1em">
+        <p class="sub-heading">Synopsis</p>
+        <hr>
+        <p style="white-space: pre-line">{{ content.synopsis }}</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block modal %}
+<div class="modal" id="list_add_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="background-color:#1C1C1C">
+            <div class="modal-header justify-content-center">
+                <h5 class="modal-title default-text-color" id="" style="text-align: center;">Add to
+                    list</h5>
+            </div>
+            <div class="modal-body" style="align-items:center;">
+
+                <li class="list-group-item" style="background-color: #53518e; margin-bottom: 5px;">
+                    <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
+                        <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E;"
+                            href="{{ url_for('list_add_content', content_type=content.content_type, content_title=content.title) }}" role="button">Me</a>
+                    </div>
+                </li>
+                {% if groups %}
+                {% for group in groups %}
+                <li class="list-group-item" style="background-color: #53518e; margin-bottom: 5px;">
+                    <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
+                        <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E;"
+                            href="{{ url_for('group_list_add_content', content_type=content.content_type, content_title=content.title, group_id=group.group_id) }}" role="button">{{ group.name }}</a>
+                    </div>
+                </li>
+                {% endfor %}
+                {% else %}
+                <li class="list-group-item" style="background-color: #53518e">
+                    <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
+                        <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E">No
+                            Groups!</a>
+                    </div>
+                </li>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}"
+                    class="btn cancel">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    $(document).ready(function () {
+        $("#list_add_modal").modal("show")
+    })
+</script>
+{% endblock %}

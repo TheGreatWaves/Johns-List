@@ -1,0 +1,14 @@
+<div class="btn-group" style="width: 100%; margin-top: 10px;">
+    <a class="btn nice" style="width: 100%;"
+        href="{{ url_for('list_add_content', content_title=content.title, content_type=content.content_type) }}"
+        role="button">
+        Add to my list
+    </a>
+    <button type="button" class="btn nice dropdown-toggle dropdown-toggle-split" id=""
+        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+    </button>
+    <div class="dropdown-menu dropdown-menu-center" style="background-color: #1C1C1C; height: auto;">
+        <a href="{{ url_for('list_add_modal', content_type=content.content_type, content_title=content.title) }}" 
+        class="btn stretched-link" style="text-align: center; width: 100%; height: 100%; color: #AAAAAA;">Add to group</a>
+    </div>
+</div>

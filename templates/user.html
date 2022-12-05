@@ -34,6 +34,7 @@
 
     a.search,
     a.create,
+    a.nice,
     button.edit {
         background-color: transparent;
         color: #AAAAAA;
@@ -44,6 +45,7 @@
     a.search:hover,
     a.create:hover,
     a.group:hover,
+    a.nice:hover,
     button.edit:hover {
         background-color: #53518e !important;
         color: #0E0E0E !important;
@@ -81,8 +83,23 @@
 {% block content %}
 <!-- Left column -->
 <div class="col-sm-2 well">
+
+    <!-- Profile picture -->
     <div class="well">
         <img src="{{ url_for('static', filename='place_holder_img.png' ) }}" class="center img-thumbnail" alt="poster">
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="col text-end">
+            <a class="btn nice" style="width: 100%; height: 25px; line-height: 10px; margin-bottom: 5px;" href="{{ url_for('list', owner='user', owner_name=user.username, list_name=user.lists[0].name) }}" role="button">Watch List</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col text-start">
+            <a class="btn nice" style="width: 100%; height: 25px; line-height: 10px;" href="{{ url_for('list', owner='user', owner_name=user.username, list_name=user.lists[1].name) }}" role="button">Completed List</a>
+        </div>
     </div>
 </div>
 

@@ -27,7 +27,9 @@
         background-color: #8885DA;
     }
 
-    a.default:hover {
+    a.default:hover,
+    button.nice:hover,
+    a.nice:hover {
         background-color: #53518e;
         color: #0E0E0E;
     }
@@ -39,6 +41,37 @@
         color: #AAAAAA;
         border-color: #AAAAAA
     }
+
+    button.nice,
+    a.nice {
+        background-color: transparent;
+        color: #AAAAAA;
+        border-color: #AAAAAA
+    }
+
+    .dropdown-menu-center {
+        width: 100%;
+    }
+
+    .dropdown-content {
+    display: flex !important;
+    background-color: #1C1C1C !important;
+    color: #AAAAAA !important;
+    }
+
+    .dropdown-menu-center:hover {
+    background-color: #242424 !important;
+    }
+
+    /*
+     *  Hide ugly borders :)
+     */
+    a.stretched-link:active
+    {
+        border-color: transparent !important;
+    }
+
+
 </style>
 
 {% endblock %}
@@ -54,7 +87,7 @@
         <div class="col">
             <h2>{{ content.title }}</h2>
         </div>
-        
+
         <!-- Edit content page -->
         <div class="col-md-1 text-end" style="margin: auto;">
             <form action="" method="POST">
@@ -72,11 +105,10 @@
     <div class="well">
         <img src="{{ content.poster }}" class="center rounded" alt="poster">
     </div>
-    <div class="row text-center" style="margin-top: 5px">
-        <a class="btn default" style="margin-left: 10px; width: 94%;"
-            href="{{ url_for('list_add_content', content_title=content.title, content_type=content.content_type) }}"
-            role="button">Add to my list</a>
-    </div>
+
+    <!-- Add to list button -->
+    {% include 'add_to_list.html' %}
+
 </div>
 
 <!-- Right column -->
