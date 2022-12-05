@@ -102,7 +102,7 @@ def signup():
         # If user already exists...
         if existing_user:
 
-            # Note: elif is used to prevent bombarding with flush
+            # Note: elif is used to prevent bombarding with flash
 
             # Email is in use
             if existing_user.email == email:
@@ -115,21 +115,11 @@ def signup():
             
             return render_template('signup.html',img=img)
     
-
         pw = userDetails['password']
         hashed_pw = generate_password_hash(pw)
-        
         new_user = User(email=email, username=username, password=hashed_pw)
-        
-        new_user_watch_list = List(new_user.user_id, 'u')
-        new_user_watch_list.name="watchlist"
-        new_user_completed_list = List(new_user.user_id, 'u')
-        new_user_completed_list.name="completed"
-        
-        new_user.lists.append(new_user_watch_list)
-        new_user.lists.append(new_user_completed_list)
-        
         db.session.add(new_user)
+        
         db.session.commit()
         
         flash('Successfully registered', 'success')
@@ -252,15 +242,6 @@ def create_group():
         # Add current user to the newly created group
         new_group.members.append(whoami())
 
-        # Add lists
-        new_group_watch_list = List(new_group.group_id, 'g')
-        new_group_watch_list.name="watchlist"
-        new_group_completed_list = List(new_group.group_id, 'g')
-        new_group_completed_list.name="completed"
-        
-        new_group.lists.append(new_group_watch_list)
-        new_group.lists.append(new_group_completed_list)
-
         # Save changes
         db.session.add(new_group)
         db.session.commit()
@@ -293,8 +274,7 @@ def join_group(group_name):
         flash('Already in group!', 'danger')
         return redirect(url_for('group', group_name=group_name))
 
-    group.members.append(user)
-    group.size += 1
+    group.add_member(user)
     db.session.commit()
 
     flash('Joined group!', 'success')

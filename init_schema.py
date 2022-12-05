@@ -54,7 +54,14 @@ class User( db.Model ):
         self.email = email
         self.username = username
         self.password = password
-
+        
+        # Create the watchlist and completed list for user
+        watch_list = List(self.user_id, 'u', 'watchlist')
+        completed_list = List(self.user_id, 'u', 'completed')
+        
+        self.lists.append(watch_list)       # At index 0
+        self.lists.append(completed_list)   # At index 1
+        
     def get_all_groups(self):
         return Group.query.join(group_member_table)\
             .join(User)\
@@ -66,11 +73,11 @@ class User( db.Model ):
 
 # Group table
 class Group( db.Model ):
-    group_id = db.Column('group_id', db.Integer, primary_key = True, autoincrement = True)
+    group_id    = db.Column('group_id', db.Integer, primary_key = True, autoincrement = True)
     group_class = db.Column('group_class', db.CHAR(1), primary_key = True, default='g')
-    name = db.Column(db.String(20), unique=True, nullable=False)
-    size = db.Column(db.Integer, default=1)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))  
+    name        = db.Column(db.String(20), unique=True, nullable=False)
+    size        = db.Column(db.Integer, default=1)
+    user_id     = db.Column(db.Integer, db.ForeignKey('user.user_id'))  
 
     members = db.relationship('User',
         secondary = group_member_table,
@@ -96,9 +103,21 @@ class Group( db.Model ):
             .first() 
             
         return member is not None
+    
 
     def __init__(self, name):
         self.name = name
+        
+        # Add lists
+        group_watch_list = List(self.group_id, 'g', 'watchlist')
+        group_completed_list = List(self.group_id, 'g', 'completed')
+        
+        self.lists.append(group_watch_list)        # At index 0
+        self.lists.append(group_completed_list)    # At index 1
+        
+    def add_member(self, user):
+        self.members.append(user)
+        self.size = self.size + 1
 
 class Content( db.Model ):
     content_id = db.Column( 'content_id', db.Integer, primary_key = True, autoincrement = True )
@@ -171,9 +190,10 @@ class List( db.Model ):
         if self.has_content(content):
             self.contents.remove(content)
     
-    def __init__(self, owner_id, owner_class):
+    def __init__(self, owner_id, owner_class, name):
         
         self.owner_class = owner_class
+        self.name = name
         
         if owner_class=='u':
             self.user_id = owner_id
@@ -188,11 +208,14 @@ class List( db.Model ):
 # END OF TABLE INITIALIZATION #
 #=============================#
 
+def create():
+    db.drop_all()
+    db.create_all()
+
 # Initialize all tables (Note this will also drop all previously existing tables)
 if __name__ == '__main__':  
     with app.app_context():
-        db.drop_all()
-        db.create_all()
+        create()
 
 
 
