@@ -135,8 +135,8 @@ class Content( db.Model ):
         rating = Rating(uid, rating)
         self.ratings.append(self.entry)
 
-    def set_rating(self,cid,rating):
-        to_update = rating_contents_table.c.query.filter_by(content_id = cid).first()
+    def set_rating(self,uid,rating):
+        to_update = rating_contents_table.c.query.filter_by(user_id = uid).first()
         to_update.content_rating = rating
 
     def get_rating(self,uid):
