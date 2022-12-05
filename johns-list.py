@@ -21,21 +21,18 @@ from init_schema import app, db, User, Group, group_member_table, Content, List
 cred = yaml.load(open('cred.yaml'), Loader=yaml.Loader)
 
 # Images for background of signup/signin
-bg_images = ['https://thumbs.gfycat.com/BrightCleanAnkole-size_restricted.gif', 'https://geekymythology.files.wordpress.com/2018/10/howls-moving-castle-sophie-on-a-train.gif', 'https://i.gifer.com/3QvS.gif','https://media2.giphy.com/media/XP3c8dMALpHxK/giphy.gif','https://i.pinimg.com/originals/4e/99/f1/4e99f14687f913f793a66c15eaa52ae5.gif'];
+bg_images = ['https://thumbs.gfycat.com/BrightCleanAnkole-size_restricted.gif', 
+             'https://geekymythology.files.wordpress.com/2018/10/howls-moving-castle-sophie-on-a-train.gif', 
+             'https://i.gifer.com/3QvS.gif',
+             'https://media2.giphy.com/media/XP3c8dMALpHxK/giphy.gif',
+             'https://i.pinimg.com/originals/4e/99/f1/4e99f14687f913f793a66c15eaa52ae5.gif']
 
 
 # Database credentials configurations 
-# app.config['MYSQL_HOST'] = cred['mysql_host']
-# app.config['MYSQL_USER'] = cred['mysql_user']
-# app.config['MYSQL_PASSWORD'] = cred['mysql_password']
-# app.config['MYSQL_DB'] = cred['mysql_db']
-# app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 app.config['SECRET_KEY'] = 'SECRET_KEY' # TODO: REMOVE THIS!
-
 
 # Comment to disable logs
 app.config['SQLALCHEMY_ECHO'] = True
-
 
 #=========================================#
 #       Short cute simple QoL utils       #
@@ -53,7 +50,7 @@ def whoami_username():
 def whoami():
     if not logged_in():
         return None
-    return User.query.filter_by(username=session['username']).first()
+    return User.query.filter_by(user_id=session['uid']).first()
 
 def is_user(user_name):
     if not logged_in():
@@ -84,22 +81,21 @@ def signup():
 
     elif request.method == 'POST':
         userDetails = request.form
+        email = userDetails['email']
+        username = userDetails['username']
         
         # Check that passwords matches
         if userDetails['password'] != userDetails['confirm_password']:
             flash('Password does not match', 'danger')
-            return render_template('signup.html',img=img)
-        
-        email = userDetails['email']
-        username = userDetails['username']
+            return render_template('signup.html',img=img, email=email, username=username)
 
         if email == "":
             flash('Email can not be blank', 'danger')
-            return render_template('signup.html',img=img)
+            return render_template('signup.html',img=img, username=username)
 
         if username == "":
             flash('Username can not be blank', 'danger')
-            return render_template('signup.html',img=img)
+            return render_template('signup.html',img=img, email=email)
 
         existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
 
@@ -111,9 +107,11 @@ def signup():
             # Email is in use
             if existing_user.email == email:
                 flash('Email already in use', 'danger')
+                return render_template('signup.html',img=img, username=username)
             # Usernname is in use
             elif existing_user.username == username:
                 flash('Username unavailable', 'danger')
+                return render_template('signup.html',img=img, email=email)
             
             return render_template('signup.html',img=img)
     
@@ -170,6 +168,7 @@ def signin():
                 # Log session info
                 session['login'] = True
                 session['username'] = found.username
+                session['uid'] = found.user_id
                 flash('Welcome ' + session['username'],'success')
 
                 # If we were redirected to login, we want to 
@@ -221,6 +220,7 @@ def user(username):
 
 @app.route('/create_group/', methods=['GET', 'POST'])
 def create_group():
+    
     if request.method == 'GET':
 
         # Redirect to login if not
@@ -237,14 +237,14 @@ def create_group():
         # Check if group name is valid
         if group_name == "":
             flash('Group name can not be empty', 'danger')
-            return redirect('/create_group/')
+            return redirect(url_for('create_group'))
 
         found = Group.query.filter_by(name=group_name).first()
        
         # If found, group name has been taken
         if found:
             flash('Group name already taken', 'danger')
-            return redirect('/create_group/')
+            return redirect(url_for('create_group'))
 
         # Create the new group
         new_group = Group(name=group_name)
@@ -266,7 +266,7 @@ def create_group():
         db.session.commit()
 
         flash(f'New group [{group_name}] successfully created!', 'success')
-
+        
         # Redirect to the new group's page
         return redirect(url_for('group', group_name=group_name))
     else:
@@ -583,8 +583,12 @@ def list(owner, owner_name, list_name):
             return redirect('/')
         
         name = list_owner.username if hasattr(list_owner, "username") else list_owner.name
+        user = whoami()
+        
+        # For list editting permissions (either owner or member of group)
+        is_owner = is_user(owner_name) or ((list_owner.has_member(whoami().user_id) != None) if user is not None else False) 
     
-        return render_template('list.html', owner_name=name, list=list, is_owner=is_user(owner_name))
+        return render_template('list.html', owner_name=name, list=list, is_owner=is_owner)
     
     elif request.method == 'POST':
         
@@ -617,6 +621,13 @@ def list(owner, owner_name, list_name):
 @app.route("/content/<content_type>/<content_title>/modal/", methods=['GET', 'POST'])
 def list_add_modal(content_type, content_title):
     if request.method == 'GET':
+        
+        
+        # Handle login
+        if not logged_in():
+            session['last_page'] = url_for('list_add_modal', content_type=content_type, content_title=content_title)
+            return redirect(url_for('signin'))
+        
         found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
         
         if found:
