@@ -153,16 +153,24 @@ class Content( db.Model ):
     def get_all_rating(self):
         return self.get_all_rating_q().all()
 
+    def get_rating(self,uid):
+        return Rating.query.filter_by(user_id=uid, content_id=self.content_id).first()
+
     def add(self, uid, score):
         rating = Rating(uid, score)
         self.ratings.append(rating)
-        
-    def get_rating(self,uid):
-        return self.get_all_rating_q().filter_by(user_id=uid).first()
+        return rating
 
-    def set_rating( self, uid, rating ):
-        to_update = self.get_rating(uid)
-        to_update.content_rating = rating
+    def set_rating( self, uid, score ):
+        
+        rating = self.get_rating(uid)
+        
+        if rating is None:
+            self.add(uid, score)
+            return Rating.ADDED_RATING
+        else:
+            rating.content_rating = score
+            return Rating.EDITTED_RATING
 
 
 # M-2-M relationship between list and content
@@ -231,12 +239,16 @@ class Rating( db.Model ):
     rat_id = db.Column( db.Integer, primary_key = True, autoincrement = True)
     user_id = db.Column( db.Integer, db.ForeignKey("user.user_id"), nullable=True )
     content_id = db.Column( db.Integer, db.ForeignKey("content.content_id"), nullable=False )
-    
     content_rating = db.Column( db.Integer())
+
+    # Some constants
+    ADDED_RATING   = 0
+    EDITTED_RATING = 1
 
     def __init__(self, uid, rating):
         self.user_id = uid
         self.content_rating = rating
+        
     
 #=============================#›
 # END OF TABLE INITIALIZATION #

@@ -15,7 +15,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import yaml
 
 # App, db and tables
-from init_schema import app, db, User, Group, group_member_table, Content, List
+from init_schema import app, db, User, Group, group_member_table, Content, List, Rating
 
 # Load credentials
 cred = yaml.load(open('cred.yaml'), Loader=yaml.Loader)
@@ -239,11 +239,12 @@ def create_group():
         # Create the new group
         new_group = Group(name=group_name)
     
+        # Save changes
+        db.session.add(new_group)
+        
         # Add current user to the newly created group
         new_group.add_member(whoami())
 
-        # Save changes
-        db.session.add(new_group)
         db.session.commit()
 
         flash(f'New group [{group_name}] successfully created!', 'success')
@@ -645,17 +646,21 @@ def rate_content(content_type, content_title):
         rating = request.form["slider"]
         
         if content:
-            if not content.get_rating(user.user_id):
-                content.add(user.user_id,rating)
+            
+            action = content.set_rating(user.user_id, rating)
+            
+            if action == Rating.ADDED_RATING:
+                
                 flash('Rating added', 'success')
                 db.session.commit()
                 return redirect('/')
-            else:
-                content.set_rating(user.user_id, rating)
+            
+            elif action == Rating.EDITTED_RATING:
+                
                 flash('Rating editted', 'success')
                 db.session.commit()
                 return redirect('/')
-        
+                
         flash('no content found', 'danger')
         return redirect('/')
 
