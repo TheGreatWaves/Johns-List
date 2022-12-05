@@ -639,6 +639,10 @@ def rate_content(content_type, content_title):
             return render_template('content', content_type=content_type, content_title=content_title)
         
     elif request.method == 'POST':  
+        
+        if not logged_in():
+            session['last_page'] = url_for('content', content_type=content_type, content_title=content_title)
+            return redirect(url_for('signin'))
 
         user = whoami()
         content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
@@ -649,12 +653,12 @@ def rate_content(content_type, content_title):
                 content.add(user.user_id,rating)
                 flash('Rating added', 'success')
                 db.session.commit()
-                return redirect('/')
+                return redirect( url_for('content', content_type=content_type, content_title=content_title))
             else:
                 content.set_rating(user.user_id, rating)
                 flash('Rating editted', 'success')
                 db.session.commit()
-                return redirect('/')
+                return redirect( url_for('content', content_type=content_type, content_title=content_title))
         
         flash('no content found', 'danger')
         return redirect('/')
