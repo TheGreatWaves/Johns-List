@@ -337,12 +337,12 @@ def leave_group(group_name):
 
         flash('Successfully left group!', 'success')
 
-        return redirect(url_for('group', group=group))
+        return redirect(url_for('group', group_name=group_name))
     
     # We're trying to leave, but we
     # are not in the group
     flash('Not in group!', 'danger')
-    return redirect(url_for('group', group=group))
+    return redirect(url_for('group', group_name=group_name))
 
 @app.route('/group/<group_name>/edit')
 def edit_group(group_name):
