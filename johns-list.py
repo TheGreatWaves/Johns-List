@@ -72,6 +72,7 @@ def is_user(user_name):
 /create_group/
 /group/<group_name>/join
 /group/<group_name>/leave
+/group/<group_name>/edit
 /group/<group_name>
 /search_group/
 /create_content/
@@ -264,8 +265,8 @@ def create_group():
         # Save changes
         db.session.add(new_group)
         
-        # Add current user to the newly created group
-        new_group.add_member(whoami())
+        # # Add current user to the newly created group
+        # new_group.add_member(whoami())
 
         db.session.commit()
 
@@ -304,19 +305,6 @@ def join_group(group_name):
 
     return redirect(url_for('group', group_name=group_name))
 
-@app.route('/group/<group_name>/edit')
-def edit_group(group_name):
-    if request.method == 'GET':
-        found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
-        
-        if not logged_in():
-            session['last_page'] = url_for('edit_group',content_type=content_type, content_title=content_title)
-            return redirect(url_for('signin'))
-        
-        return render_template('edit_group.html', group_name=group_name)
-
-    return redirect(url_for('group', group_name=group_name))
-
 # Leave Group
 @app.route('/group/<group_name>/leave')
 def leave_group(group_name):
@@ -349,12 +337,70 @@ def leave_group(group_name):
 
         flash('Successfully left group!', 'success')
 
-        return redirect(url_for('group', group_name=group_name))
+        return redirect(url_for('group', group=group))
     
     # We're trying to leave, but we
     # are not in the group
     flash('Not in group!', 'danger')
-    return redirect(url_for('group', group_name=group_name))
+    return redirect(url_for('group', group=group))
+
+@app.route('/group/<group_name>/edit')
+def edit_group(group_name):
+    group = Group.query.filter_by(name=group_name).first()
+    if group is None:
+        flash("Group not found", 'danger')
+        return redirect('/')
+    
+    # Get list of all members
+    members_q = group.get_all_members()
+    members = group.get_all_members().all()
+
+    who = whoami()
+    is_owner = who == group.owner_id
+    is_member = members_q.filter(User.user_id == who.user_id).first()
+    if request.method == 'GET':
+        if not logged_in():
+            session['last_page'] = url_for('edit_group', group=group)
+            return redirect(url_for('signin'))
+            
+        return render_template('edit_group', group=group, members=members, is_member=is_member, is_owner=is_owner)
+    elif request.method == 'POST':
+        gid = group.group_id
+        form = request.form
+        group_name = form['group_name'] if is_owner else group.name
+        group_img = form['group_img']
+        group_info = form['group_info']
+
+        if group_name  == "":
+            flash('Group name cannot be empty', 'danger')
+            return redirect(url_for('edit_group',group=group, members=members, is_member=is_member, is_owner=is_owner))
+            
+        if group_img == "":
+            group_img = '/static/place_holder_img.png';
+
+        if group_info == "":
+            group_info = Group.set_default_info
+                
+        # existing group name
+        existing_name = Group.query.filter(Group.name == group_name).first()
+        if existing_name and existing_name.name != group.name:
+            flash('This name has already been taken', 'danger')
+            return redirect(url_for('edit_group', group=group, members=members, is_member=is_member, is_owner=is_owner))
+
+        print('before db query')
+                
+        # Update group    
+        group_update = Group.query.filter(Group.content_id == gid).first()
+        group_update.name = group_name
+        group_update.info = group_info
+        group_update.group_img = group_img
+        db.session.commit()
+            
+        # Success message
+        flash('Group edited successfully', 'success')
+
+    return redirect(url_for('group', group=group))
+
 
 # Group
 @app.route('/group/<group_name>', methods=['GET'])

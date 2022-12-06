@@ -75,7 +75,7 @@
             {% if is_member %}
 
             <!-- TODO: ROUTE THIS! -->
-            <a class="btn edit" href="#" role="button">Edit</a>
+            <a class="btn edit" href="{{ url_for('edit_group', group_name=group.name) }}" role="button">Edit</a>
 
             <a class="btn leave" href="{{ url_for('leave_group', group_name=group.name) }}" role="button">Leave</a>
             {% else %}

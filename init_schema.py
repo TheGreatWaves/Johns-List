@@ -107,17 +107,21 @@ class Group( db.Model ):
             
         return member is not None
     
+    def set_default_info(self, name):
+        self.info = f"We're {name} :)"
 
     def __init__(self, name, owner: User):
         self.name = name
         self.owner_id = owner.user_id
-        self.add_member(owner)
+        self.members.append(owner)
+        self.size = 1
         
         # Add lists
         group_watch_list = List(self.group_id, 'g', 'watchlist')
         group_completed_list = List(self.group_id, 'g', 'completed')
         self.img_url = None
-        self.info = f"We're {name} :)"
+        self.info = None
+        self.set_default_info(name)
         
         self.lists.append(group_watch_list)        # At index 0
         self.lists.append(group_completed_list)    # At index 1
@@ -125,6 +129,8 @@ class Group( db.Model ):
     def add_member(self, user):
         self.members.append(user)
         self.size = self.size + 1
+        
+
 
 class Content( db.Model ):
     content_id = db.Column( 'content_id', db.Integer, primary_key = True, autoincrement = True )
