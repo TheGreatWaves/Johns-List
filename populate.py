@@ -65,6 +65,14 @@ def add_groups():
         Group(name='secret friendship', owner=john),
     ]
     
+    secret_friendship = groups_to_add[3]
+    secret_friendship.img_url = "https://i.ytimg.com/vi/S6bQibFNs2E/maxresdefault.jpg"
+    
+    fun_big_group = groups_to_add[0]
+    fun_big_group.img_url = "https://cdn.otakutale.com/wp-content/uploads/2020/10/Higurashi-no-Naku-Koro-ni-2020-Anime-to-Run-for-24-Episodes-Title-Officially-Revealed.jpg"
+    fun_big_group.info = "We're a big community of extremely sane friends living in an extremely peaceful village."
+    
+    
     for group in groups_to_add:
         groups.append(group)
     
@@ -104,7 +112,7 @@ def add_contents():
     [
         Content("Shuumatsu Nani Shitemasu ka? Isogashii desu ka? Sukutte Moratte Ii desu ka?", "anime"),
         Content("Jujutsu Kaisen", "anime"),
-        Content("Re:Zero − Starting Life in Another World", "manga")
+        Content("Re:Zero Starting Life in Another World", "manga")
     ]
 
     shuumatsu = contents_to_add[0]

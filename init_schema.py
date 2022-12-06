@@ -107,28 +107,35 @@ class Group( db.Model ):
             
         return member is not None
     
-    def set_default_info(self, name):
-        self.info = f"We're {name} :)"
+    def set_default_info(self):
+        self.info = f"Nothing provided"
 
     def __init__(self, name, owner: User):
         self.name = name
         self.owner_id = owner.user_id
-        self.members.append(owner)
-        self.size = 1
+        self.size = 0
+        self.add_member(owner)
         
         # Add lists
         group_watch_list = List(self.group_id, 'g', 'watchlist')
         group_completed_list = List(self.group_id, 'g', 'completed')
         self.img_url = None
         self.info = None
-        self.set_default_info(name)
+        self.set_default_info()
         
         self.lists.append(group_watch_list)        # At index 0
         self.lists.append(group_completed_list)    # At index 1
         
     def add_member(self, user):
         self.members.append(user)
-        self.size = self.size + 1
+        self.size += 1
+    
+    def remove_member(self, user):
+        self.members.remove(user)
+        self.size -= 1
+        
+    def empty(self):
+        return self.size <= 0
         
 
 

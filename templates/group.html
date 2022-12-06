@@ -83,14 +83,6 @@
             {% endif %}
         </div>
         {% endif %}
-       
-        
-        <!-- TODO: ROUTE THIS -->
-        <!-- <div class="col-md-1 text-end" style="margin: auto;">
-            <form action="" method="POST">
-                <button class="btn edit" type="submit">Edit</button>
-            </form>
-        </div> -->
     </div>
 </div>
 {% endblock %}
@@ -99,7 +91,7 @@
 <!-- Left column -->
 <div class="col-sm-2 well">
     <div class="well">
-        <img src="{{ url_for('static', filename='place_holder_img.png' ) }}" class="center img-thumbnail" alt="poster">
+        <img src="{{ group.img_url }}" class="center rounded" alt="poster">
     </div>
 
     <hr>
@@ -121,7 +113,7 @@
         <div class="col-md-8 well" style="margin-top: 1em">
             <p class="sub-heading">About us</p>
             <hr>
-            <p style="white-space: pre-line">What??</p>
+            <p style="white-space: pre-line">{{ group.info }}</p>
         </div>
         <div class="col-md-4 well" style="margin-top: 1em">
 

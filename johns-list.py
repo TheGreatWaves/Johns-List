@@ -46,6 +46,9 @@ def logged_in():
 def whoami_username():
     return session.get('username')
 
+def whoami_id():
+    return session.get('uid')
+
 # Return current user
 def whoami():
     if not logged_in():
@@ -260,14 +263,13 @@ def create_group():
             return redirect(url_for('create_group'))
 
         # Create the new group
-        new_group = Group(name=group_name)
+        new_group = Group(name=group_name, owner=whoami())
+        
+        # Can't set inside init_schema
+        new_group.img_url = url_for('static', filename='place_holder_img.png')
     
         # Save changes
         db.session.add(new_group)
-        
-        # # Add current user to the newly created group
-        # new_group.add_member(whoami())
-
         db.session.commit()
 
         flash(f'New group [{group_name}] successfully created!', 'success')
@@ -318,12 +320,11 @@ def leave_group(group_name):
 
     # User is in group, remove them.
     if in_group:
-        group.members.remove(user)
-        group.size -= 1
+        group.remove_member(user)
         db.session.commit()
         
         # Group has no members, disband.
-        if group.size <= 0:
+        if group.empty():
             
             # Clear list ( so all foreign keys are let-go )
             group.lists = []
@@ -337,15 +338,15 @@ def leave_group(group_name):
 
         flash('Successfully left group!', 'success')
 
-        return redirect(url_for('group', group=group))
+        return redirect(url_for('group', group_name=group.name))
     
     # We're trying to leave, but we
     # are not in the group
     flash('Not in group!', 'danger')
-    return redirect(url_for('group', group=group))
+    return redirect(url_for('group', group_name=group.name))
 
-@app.route('/group/<group_name>/edit')
-def edit_group(group_name, methods=['GET', 'POST']):
+@app.route('/group/<group_name>/edit', methods=['GET', 'POST'])
+def edit_group(group_name):
     group = Group.query.filter_by(name=group_name).first()
     if group is None:
         flash("Group not found", 'danger')
@@ -355,9 +356,9 @@ def edit_group(group_name, methods=['GET', 'POST']):
     members_q = group.get_all_members()
     members = group.get_all_members().all()
 
-    who = whoami()
+    who = whoami_id()
     is_owner = who == group.owner_id
-    is_member = members_q.filter(User.user_id == who.user_id).first()
+    is_member = members_q.filter(User.user_id == who).first()
     if request.method == 'GET':
         if not logged_in():
             session['last_page'] = url_for('edit_group', group_name=group.name)
@@ -365,7 +366,6 @@ def edit_group(group_name, methods=['GET', 'POST']):
             
         return render_template('edit_group.html', group=group, members=members, is_member=is_member, is_owner=is_owner)
     elif request.method == 'POST':
-        gid = group.group_id
         form = request.form
         group_name = form['group_name'] if is_owner else group.name
         group_img = form['group_img']
@@ -376,10 +376,7 @@ def edit_group(group_name, methods=['GET', 'POST']):
             return redirect(url_for('edit_group',group=group, members=members, is_member=is_member, is_owner=is_owner))
             
         if group_img == "":
-            group_img = '/static/place_holder_img.png';
-
-        if group_info == "":
-            group_info = Group.set_default_info
+            group_img = url_for('static', filename='place_holder_img.png')
                 
         # existing group name
         existing_name = Group.query.filter(Group.name == group_name).first()
@@ -388,16 +385,16 @@ def edit_group(group_name, methods=['GET', 'POST']):
             return redirect(url_for('edit_group', group=group, members=members, is_member=is_member, is_owner=is_owner))
                 
         # Update group    
-        group_update = Group.query.filter(Group.content_id == gid).first()
-        group_update.name = group_name
-        group_update.info = group_info
-        group_update.group_img = group_img
+   
+        group.name = group_name
+        group.info = group_info
+        group.img_url = group_img
         db.session.commit()
             
         # Success message
         flash('Group edited successfully', 'success')
 
-    return redirect(url_for('group', group=group))
+    return redirect(url_for('group', group_name=group.name))
 
 
 # Group
