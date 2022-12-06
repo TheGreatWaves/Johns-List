@@ -337,15 +337,15 @@ def leave_group(group_name):
 
         flash('Successfully left group!', 'success')
 
-        return redirect(url_for('group', group_name=group_name))
+        return redirect(url_for('group', group=group))
     
     # We're trying to leave, but we
     # are not in the group
     flash('Not in group!', 'danger')
-    return redirect(url_for('group', group_name=group_name))
+    return redirect(url_for('group', group=group))
 
 @app.route('/group/<group_name>/edit')
-def edit_group(group_name):
+def edit_group(group_name, methods=['GET', 'POST']):
     group = Group.query.filter_by(name=group_name).first()
     if group is None:
         flash("Group not found", 'danger')
@@ -360,10 +360,10 @@ def edit_group(group_name):
     is_member = members_q.filter(User.user_id == who.user_id).first()
     if request.method == 'GET':
         if not logged_in():
-            session['last_page'] = url_for('edit_group', group=group)
+            session['last_page'] = url_for('edit_group', group_name=group.name)
             return redirect(url_for('signin'))
             
-        return render_template('edit_group', group=group, members=members, is_member=is_member, is_owner=is_owner)
+        return render_template('edit_group.html', group=group, members=members, is_member=is_member, is_owner=is_owner)
     elif request.method == 'POST':
         gid = group.group_id
         form = request.form
@@ -386,8 +386,6 @@ def edit_group(group_name):
         if existing_name and existing_name.name != group.name:
             flash('This name has already been taken', 'danger')
             return redirect(url_for('edit_group', group=group, members=members, is_member=is_member, is_owner=is_owner))
-
-        print('before db query')
                 
         # Update group    
         group_update = Group.query.filter(Group.content_id == gid).first()
