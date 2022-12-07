@@ -91,11 +91,13 @@ def is_user(user_name):
 # Index
 @app.route("/")
 def index():
+    print("THE URL: ", url_for('static', filename='place_holder_pfp.png'))
     return render_template("index.html")
 
 # About page
 @app.route("/about/")
 def about():
+    print("THE URL: ", url_for('static', filename='place_holder_pfp.png'))
     return render_template("about.html")
 
 # Sign up 
@@ -144,8 +146,8 @@ def signup():
         pw = userDetails['password']
         hashed_pw = generate_password_hash(pw)
         new_user = User(email=email, username=username, password=hashed_pw)
-        db.session.add(new_user)
         
+        db.session.add(new_user)
         db.session.commit()
         
         flash('Successfully registered', 'success')
@@ -223,6 +225,10 @@ def user(username):
     # User not found
     if user is None:
         flash("User not found", 'danger')
+        
+        if username == whoami_username():
+            session.clear()
+        
         return redirect('/')
 
     # Get all groups the user is in
@@ -748,6 +754,20 @@ def set_rating_modal(content_type, content_title):
     if request.method == 'POST':
         #content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
         return redirect(url_for('rate_content',content_type=content_type, content_title=content_title))
+
+# Search Group
+@app.route('/search/user/', methods=['GET', 'POST'])
+def search_user():
+    if request.method == 'GET':
+        return render_template('search_user.html')
+    elif request.method == 'POST':
+
+        username = request.form['username']
+        search_name = "%{}%".format(username)
+        users = User.query.filter(User.username.like(search_name)).order_by(User.username).all()
+        
+        return render_template('search_user.html', users=users)
+
 
 #=========================================#
 #    END OF ENTRY POINT INITIALIZATION    #

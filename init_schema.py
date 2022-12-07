@@ -5,7 +5,7 @@ This is ONLY responsible for creating tables.
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.hybrid import hybrid_property
 from flask import Flask, url_for
-
+import random # For random pfp
 import yaml
 
 # Load credentials
@@ -36,6 +36,18 @@ group_member_table = db.Table('group_member',
     db.Column('group_id', db.Integer, db.ForeignKey('group.group_id'))
 )
 
+# For fun
+default_pfp = \
+    [
+        "https://i.pinimg.com/736x/6e/f4/ca/6ef4caa2da03b1fb9e4a00563c76ef5a.jpg",
+        "https://i.pinimg.com/originals/2c/73/6a/2c736aa4d61d22e3946e73cbc37d9e06.jpg",
+        "https://i.pinimg.com/originals/09/fa/83/09fa83a152b6100c00896b667be2606f.jpg",
+        "https://i.pinimg.com/originals/78/6b/44/786b44076c4a7bb58da5aea354e7033b.jpg",
+        "https://i.pinimg.com/originals/9b/2f/ac/9b2face9ba26d8db7567dd157913f63f.jpg",
+        "https://i.pinimg.com/736x/d1/34/07/d1340745c4aaa9ee1c6952e793765bb7.jpg",
+    ]
+
+
 # User table
 class User( db.Model ):
     user_id         = db.Column('user_id', db.Integer, primary_key = True, autoincrement=True)
@@ -55,6 +67,10 @@ class User( db.Model ):
         self.email = email
         self.username = username
         self.password = password
+        
+        # Can't use url_for here without context, so
+        # we have to manuallly set it here.
+        self.profile_pic_url = random.choice(default_pfp)
         
         # Create the watchlist and completed list for user
         watch_list = List(self.user_id, 'u', 'watchlist')
@@ -120,7 +136,6 @@ class Group( db.Model ):
         group_watch_list = List(self.group_id, 'g', 'watchlist')
         group_completed_list = List(self.group_id, 'g', 'completed')
         self.img_url = None
-        self.info = None
         self.set_default_info()
         
         self.lists.append(group_watch_list)        # At index 0

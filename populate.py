@@ -19,6 +19,10 @@ def add_users():
         User(email="jenny@gmail.com", username="jenny", password=generate_password_hash('123')),
     ]
     
+    admin = users_to_add[0]
+    admin.profile_pic_url = "https://play-lh.googleusercontent.com/l_7GFUsvpn8yW1VjRA_1mZuEETw-Aia5DilKGkyCVYmkPnrOyvCEyabxwD9x0AmUpiq_"
+    admin.bio = "he loves Rem lol"
+    
     for user in users_to_add:
         users.append(user)
     
@@ -72,6 +76,25 @@ def add_groups():
     fun_big_group.img_url = "https://cdn.otakutale.com/wp-content/uploads/2020/10/Higurashi-no-Naku-Koro-ni-2020-Anime-to-Run-for-24-Episodes-Title-Officially-Revealed.jpg"
     fun_big_group.info = "We're a big community of extremely sane friends living in an extremely peaceful village."
     
+    # =================== Big group =================== #
+
+    big_group = groups_to_add[0]
+    
+    for user in users:
+        if user.name != 'john':
+            big_group.add_member(user)
+        
+    # ================== Lover group ================== #
+    
+    lover_group = groups_to_add[2]
+    
+    lover_group.add_member(bob)
+    
+    # ================== Plot twist ================== #
+    
+    secret_friendship = groups_to_add[3]
+    
+    secret_friendship.add_member(bob)
     
     for group in groups_to_add:
         groups.append(group)
@@ -79,33 +102,6 @@ def add_groups():
     for group in groups:
         db.session.add(group)
         
-    # =================== Big group =================== #
-
-    big_group = Group.query.filter_by(name='Fun big group').first()
-    
-    for user in users:
-        if user.name != 'john':
-            big_group.add_member(user)
-        
-    # ================ Some other group ================ #
-    
-    # lonely_group = Group.query.filter_by(name='another group').first()
-    
-    # lonely_group.add_member(bob)
-    
-    # ================== Lover group ================== #
-    
-    lover_group = Group.query.filter_by(name='lover group').first()
-    
-    lover_group.add_member(bob)
-    # lover_group.add_member(jenny)
-    
-    # ================== Plot twist ================== #
-    
-    secret_friendship = Group.query.filter_by(name='secret friendship').first()
-    
-    secret_friendship.add_member(bob)
-    # secret_friendship.add_member(john)
     
 def add_contents():
     contents_to_add = \
@@ -140,9 +136,6 @@ def add_contents():
     
     for content in contents_to_add:
         db.session.add(content)
-        
-    
-    
 
 def populate():
     add_users()
