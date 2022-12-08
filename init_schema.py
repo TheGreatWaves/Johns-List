@@ -282,7 +282,35 @@ class Rating( db.Model ):
     def __init__(self, uid, rating):
         self.user_id = uid
         self.content_rating = rating
+    
+class Person( db.Model ):
+    pid = db.Column( db.Integer, primary_key=True, autoincrement=True)
+    first_name = db.Column( db.String(20) )
+    last_name = db.Column( db.String(20) )
+    DOB = db.Column(db.Date, nullable=True, default=None)
         
+        
+class Company( db.Model ):
+    com_id = db.Column( db.Integer, primary_key=True, autoincrement=True)
+    com_name = db.Column( db.String(20) )
+    com_est = db.Column(db.Date, nullable=True, default=None)
+    
+class Status( db.Model ):
+    id = db.Column( db.Integer, primary_key=True, autoincrement=False)
+    status = db.Column( db.String(11) )
+    
+class Format( db.Model ):
+    content_type = db.Column( db.String(5), primary_key=True )
+    format_type = db.Column( db.String(15) )
+
+class Genre( db.Model ):
+    genre_type = db.Column( db.String(20), primary_key=True, nullable=False)
+    explicit = db.Column( db.Boolean, default=False, nullable=True )
+    
+class Job( db.Model ):
+    id = db.Column( db.Integer, primary_key=True)
+    name = db.Column( db.String(20) )
+    
     
 #=============================#›
 # END OF TABLE INITIALIZATION #
