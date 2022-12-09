@@ -3,11 +3,30 @@
 {% block style %}
 <link rel="stylesheet" href={{ url_for('static', filename="css/style.css" ) }}>
 <style>
+  .card:hover {
+    background-color: #8885DA;
+  }
 
-.card:hover {
-  background-color: #8885DA;
-}
+  .navigation-btn {
+    color: #AAAAAA !important;
+    background-color: #414141 !important;
+    margin-bottom: 5px;
+    margin-top: 5px;
+  }
 
+  .navigation-btn:hover {
+    color: #c0c0c0 !important;
+    background-color: #505050 !important;
+  }
+
+  .non-functional,
+  .non-functional:hover {
+    color: #666666 !important;
+    background-color: #363636 !important;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    pointer-events: none;
+  }
 </style>
 {% endblock %}
 
@@ -19,6 +38,12 @@
 
 <div class="card mx-auto" style="width: 50%; background-color: #0E0E0E;">
   <div class="container square-box d-flex justify-content-center">
+
+    {% if tag %}
+    <h1 class="default-text-color">
+      Tag: {{ tag }}
+    </h1>
+    {% else %}
     <form method="POST">
       <div class="input-group mb-3">
         <input type="text" class="form-control" placeholder="Content title" id="content_title" name="content_title">
@@ -28,6 +53,8 @@
         </div>
       </div>
     </form>
+    {% endif %}
+
   </div>
 </div>
 
@@ -42,16 +69,49 @@
         <img class="img-fluid rounded" src="{{ content.poster }}" alt="content_img" width="120px" height="150px">
       </div>
       <p class="col p-2 m-0 default-text-color">{{ content.title }} ({{ content.content_type }})</p>
-      <a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}" class="btn stretched-link"></a>
+      <a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}"
+        class="btn stretched-link"></a>
     </div>
   </div>
   {% endfor %}
   {% else %}
   <div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
-    <div class="card-img-top d-flex align-items-center" style="background-color: #1C1C1C;">
+    <div class="d-flex align-items-center" style="background-color: #1C1C1C;">
       <h1 class="default-text-color text-center">No content </h1>
     </div>
   </div>
   {% endif %}
+
+  <!-- Next (html god help me)-->
+  <div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
+    <div class="d-flex align-items-center" style="background-color: #1C1C1C;">
+      <div class="row df" style="width: 100%;">
+        <div class="col-2 mx-auto d-flex justify-content-center">
+          <div class="row">
+
+            <!-- Previous page -->
+            <div class="col d-flex justify-content-center">
+              {%if contents.page == 1%}
+              <a href="#" class="btn non-functional" tabindex="-1">Prev</a>
+              {%else%}
+              <a href="{{ url_for('search_tag', tag=tag, pagenum=contents.page-1) }}"
+                class="btn navigation-btn">Prev</a>
+              {%endif%}
+            </div>
+
+            <!-- Next page -->
+            {% if contents.page < contents.pages %} <div class="col d-flex justify-content-center">
+              <a href="{{ url_for('search_tag', tag=tag, pagenum=contents.page+1) }}"
+                class="btn navigation-btn">Next</a>
+          </div>
+          {%else%}
+          <div class="col d-flex justify-content-center">
+            <a href="#" class="btn non-functional" tabindex="-1">Next</a>
+          </div>
+          {%endif%}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

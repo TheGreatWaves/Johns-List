@@ -152,7 +152,10 @@ class Group( db.Model ):
     def empty(self):
         return self.size <= 0
         
-
+content_genre = db.Table('content_genre',
+                    db.Column('content_id', db.Integer, db.ForeignKey('content.content_id')),
+                    db.Column('genre_name', db.String(20), db.ForeignKey('genre.name'))
+                    )
 
 class Content( db.Model ):
     content_id      = db.Column( 'content_id', db.Integer, primary_key = True, autoincrement = True )
@@ -166,7 +169,9 @@ class Content( db.Model ):
     duration        = db.Column( db.Integer )
     poster          = db.Column( db.String(300) )
     synopsis        = db.Column( db.String(2000) )
+    
     status          = db.Column( db.SmallInteger() )
+    genres          = db.relationship('Genre', secondary=content_genre, backref='contents')
     
     # For string conversion
     status_dict = {-1: "Unspecified", 0: "Completed", 1: "Ongoing"}
@@ -177,7 +182,6 @@ class Content( db.Model ):
         self.poster = None
         self.synopsis = "No synopsis has been provided."
         self.status = -1
-        
         
     def find(name, type):
         return Content.query.filter((Content.title == name) & (Content.content_type == type)).first()
@@ -211,7 +215,10 @@ class Content( db.Model ):
         else:
             rating.content_rating = score
             return Rating.EDITTED_RATING
-
+        
+    def set_genre(self, *args):
+        for genre in args:
+            self.genres.append(genre)
 
 # M-2-M relationship between list and content
 list_contents_table = db.Table('list_contents_table',
@@ -305,16 +312,44 @@ class Format( db.Model ):
     format_type = db.Column( db.String(15) )
 
 class Genre( db.Model ):
-    genre_type = db.Column( db.String(20), primary_key=True, nullable=False)
+    name = db.Column( db.String(20), primary_key=True, nullable=True )
     explicit = db.Column( db.Boolean, default=False, nullable=True )
+    
+    def __init__(self, genre_name, explicit=False):
+        self.name = genre_name
+        self.explicit = explicit
     
 class Job( db.Model ):
     id = db.Column( db.Integer, primary_key=True)
     name = db.Column( db.String(20) )
     
-    
-#=============================#›
+
+#=============================#
 # END OF TABLE INITIALIZATION #
+#=============================#
+
+#=============================#
+#       Popular Genres        #
+#=============================#
+
+GENRE_ACTION            = Genre('Action')
+GENRE_ADVENTURE         = Genre('Adventure')
+GENRE_COMEDY            = Genre('Comedy')
+GENRE_DRAMA             = Genre('Drama')
+GENRE_FANTASY           = Genre('Fantasy')
+GENRE_HORROR            = Genre('Horror', True)
+GENRE_ISEKAI            = Genre('Isekai')
+GENRE_MAGIC             = Genre('Magic')
+GENRE_MYSTERY           = Genre('Mystery')
+GENRE_PSYCHOLOGICAL     = Genre('Psychological')
+GENRE_ROMANCE           = Genre('Romance')
+GENRE_SCI_FI            = Genre('Sci-Fi')
+GENRE_SOL               = Genre('Slice of Life')
+GENRE_SUPERNATURAL      = Genre('Supernatural')
+GENRE_THRILLER          = Genre('Thriller')
+
+#=============================#
+#           Set up            #
 #=============================#
 
 def create():

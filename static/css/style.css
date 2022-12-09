@@ -43,3 +43,7 @@ button[type=submit]:hover {
     background-color: #53518e;
     color: #0E0E0E;
 }
+
+p.sub-heading {
+    font-weight: bold;
+}

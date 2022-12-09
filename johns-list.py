@@ -15,7 +15,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import yaml
 
 # App, db and tables
-from init_schema import app, db, User, Group, group_member_table, Content, List, Rating
+from init_schema import app, db, User, Group, group_member_table, Content, List, Rating, Genre
 
 # Load credentials
 cred = yaml.load(open('cred.yaml'), Loader=yaml.Loader)
@@ -60,6 +60,23 @@ def is_user(user_name):
         return False
     
     return whoami_username() == user_name
+
+# https://stackoverflow.com/questions/49245479/how-to-display-a-list-across-multiple-pages-in-flask
+class SearchResult:
+    
+   def __init__(self, name, data, page = 1, number = 5):
+     self.__dict__ = dict(zip(['data', 'page', 'number'], [data, page, number]))
+     self.full_listing = [self.data[i:i+number] for i in range(0, len(self.data), number)]
+     self.page = int(page)
+     self.name = name
+     self.pages = len(self.full_listing)
+     
+   def __iter__(self):
+     for i in self.full_listing[self.page - 1]:
+       yield i
+       
+   def __repr__(self): #used for page linking
+     return "/{name}/{page}".format(name=self.name, page=self.page + 1) #view the next page
 
 #=========================================#
 # INITILIAZE ENTRY POINTS BELOW THIS LINE #
@@ -762,6 +779,11 @@ def search():
                 found = User.query.filter(User.username.like(search_name)).order_by(User.username).all()
         
         return render_template('search.html', results=found, category=search_param)
+
+@app.route('/tag/<tag>/<pagenum>')
+def search_tag(tag, pagenum):
+    tag = Genre.query.filter_by(name = tag).first()
+    return render_template('search_content.html', tag=tag.name, contents = SearchResult(f'tag/{tag}', tag.contents, pagenum, 5))
 
 
 #=========================================#

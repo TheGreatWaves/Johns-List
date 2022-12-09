@@ -1,6 +1,6 @@
 
 # App, db and tables
-from init_schema import app, db, create, User, Group, group_member_table, Content, List
+from init_schema import *
 
 # For hashing
 from werkzeug.security import generate_password_hash
@@ -104,6 +104,7 @@ def add_groups():
         
     
 def add_contents():
+
     contents_to_add = \
     [
         Content("Shuumatsu Nani Shitemasu ka? Isogashii desu ka? Sukutte Moratte Ii desu ka?", "anime"),
@@ -128,11 +129,22 @@ def add_contents():
     jujutsu_kaisen.poster = "https://m.media-amazon.com/images/M/MV5BNGY4MTg3NzgtMmFkZi00NTg5LWExMmEtMWI3YzI1ODdmMWQ1XkEyXkFqcGdeQXVyMjQwMDg0Ng@@._V1_.jpg"
     jujutsu_kaisen.synopsis = "A boy swallows a cursed talisman - the finger of a demon - and becomes cursed himself. He enters a shaman's school to be able to locate the " \
                             "demon's other body parts and thus exorcise himself."
+    jujutsu_kaisen.set_genre(GENRE_HORROR)
                             
                             
     rezero = contents_to_add[2]
     rezero.poster = "https://upload.wikimedia.org/wikipedia/en/thumb/3/3c/Re-Zero_kara_Hajimeru_Isekai_Seikatsu_light_novel_volume_1_cover.jpg/220px-Re-Zero_kara_Hajimeru_Isekai_Seikatsu_light_novel_volume_1_cover.jpg"
     rezero.synopsis = "dude got sent into another world, but it's actually hell"
+    
+    rezero.set_genre(
+        GENRE_HORROR,
+        GENRE_ISEKAI,
+        GENRE_MAGIC,
+        GENRE_FANTASY,
+        GENRE_ROMANCE,
+        GENRE_ADVENTURE,
+        GENRE_ROMANCE
+    )
     
     for content in contents_to_add:
         db.session.add(content)

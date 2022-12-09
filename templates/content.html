@@ -11,10 +11,6 @@
         color: #AAAAAA;
     }
 
-    p.sub-heading {
-        font-weight: bold;
-    }
-
     /* Center image  */
     .center {
         display: block;
@@ -76,6 +72,18 @@
         border-color: #AAAAAA;
         line-height: 15px;
     }
+
+    .content-tag {
+        color: #AAAAAA !important;
+        background-color: #3b3b3b !important;
+        margin-bottom: 5px;
+    }
+
+    .content-tag:hover {
+        color: #c0c0c0 !important;
+        background-color: #505050 !important;
+    }
+
 </style>
 
 {% endblock %}
@@ -123,11 +131,21 @@
     <!-- Add to list button -->
     {% include 'add_to_list.html' %}
 
-    <hr>
+    <hr> 
 
+    <!-- Status -->
     <div class="well default-text-color">
         <b>Status</b>: {{ content.status_dict[content.status] | default("Unspecified") }}
     </div>
+
+    <hr>
+
+    
+    <!-- Genres -->
+    <p class="sub-heading">Tags</p>
+    {% for genre in content.genres %}
+    <a class="btn content-tag btn-sm" href="{{ url_for('search_tag', tag=genre.name, pagenum=1) }}">{{ genre.name }}</a>    
+    {% endfor %}
 
 </div>
 
