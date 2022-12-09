@@ -496,8 +496,10 @@ def content(content_type, content_title):
         if found:
             content_title = found.title
             content_type = found.content_type
+            content_rating = float("{:.2f}".format(round(found.avg_rating().one_or_none().avg_rating)))
+            rating = { 'score': content_rating, 'count': found.rating_count() }
         
-            return render_template('content.html', content=found)
+            return render_template('content.html', content=found, rating=rating)
         else:
             flash('Content page not found', 'danger')
             return redirect('/')
@@ -510,7 +512,7 @@ def content(content_type, content_title):
 @app.route('/content/search/', methods=['GET', 'POST'])
 def search_content():
     if request.method == 'GET':
-        return render_template('search_content.html')
+        return render_template('search_content.html', contents=None)
     elif request.method == 'POST':
         
         content_title = request.form['content_title']
@@ -518,6 +520,8 @@ def search_content():
         contents = Content.query.filter(Content.title.like(search_name)).order_by(Content.title).all()
         return render_template('search_content.html', contents=contents)
     return render_template('search_content.html')
+
+
 
 @app.route('/content/<content_type>/<content_title>/edit', methods=['GET', 'POST'])
 def edit_content(content_type, content_title):
@@ -723,7 +727,11 @@ def rate_content(content_type, content_title):
         
         content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
         if content:
-            return render_template('set_rating_modal.html',content=content)
+            content_rating = float("{:.2f}".format(round(content.avg_rating().one_or_none().avg_rating)))
+            rating = { 'score': content_rating, 'count': content.rating_count() }
+            
+            
+            return render_template('set_rating_modal.html',content=content, rating=rating)
         else:
             return render_template('content', content_type=content_type, content_title=content_title)
         
@@ -784,7 +792,6 @@ def search():
 def search_tag(tag, pagenum):
     tag = Genre.query.filter_by(name = tag).first()
     return render_template('search_content.html', tag=tag.name, contents = SearchResult(f'tag/{tag}', tag.contents, pagenum, 5))
-
 
 #=========================================#
 #    END OF ENTRY POINT INITIALIZATION    #

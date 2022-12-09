@@ -74,14 +74,8 @@
     </div>
   </div>
   {% endfor %}
-  {% else %}
-  <div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
-    <div class="d-flex align-items-center" style="background-color: #1C1C1C;">
-      <h1 class="default-text-color text-center">No content </h1>
-    </div>
-  </div>
-  {% endif %}
 
+  {% if contents.page %}
   <!-- Next (html god help me)-->
   <div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
     <div class="d-flex align-items-center" style="background-color: #1C1C1C;">
@@ -113,5 +107,15 @@
       </div>
     </div>
   </div>
+  {% endif %}
+
+  {% else %}
+  <div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
+    <div class="d-flex align-items-center" style="background-color: #1C1C1C;">
+      <h1 class="default-text-color text-center">No content </h1>
+    </div>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

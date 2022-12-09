@@ -4,6 +4,7 @@ This is ONLY responsible for creating tables.
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.sql import func
 from flask import Flask, url_for
 import random # For random pfp
 import yaml
@@ -199,6 +200,12 @@ class Content( db.Model ):
 
     def get_rating(self,uid):
         return Rating.query.filter_by(user_id=uid, content_id=self.content_id).first()
+    
+    def avg_rating(self):
+        return Rating.query.with_entities(func.avg(Rating.content_rating).label('avg_rating')).filter(Rating.content_id == self.content_id)
+    
+    def rating_count(self):
+        return Rating.query.filter(Rating.content_id == self.content_id).count()
 
     def add(self, uid, score):
         rating = Rating(uid, score)

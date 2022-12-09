@@ -136,7 +136,11 @@
     <!-- Status -->
     <div class="well default-text-color">
         <b>Status</b>: {{ content.status_dict[content.status] | default("Unspecified") }}
+        <br>
+        <b>Score</b>: {{ rating.score }} ({{ rating.count }})
     </div>
+
+    
 
     <hr>
 
