@@ -459,6 +459,8 @@ def create_content():
             
         # Make new content
         new_content = Content(content_title, content_type)
+        new_content.poster = url_for('static', filename='place_holder_img.png')
+        
         db.session.add(new_content)
         db.session.commit()
         
@@ -521,10 +523,7 @@ def edit_content(content_type, content_title):
         content_title = form['content_title']
         content_img = form['content_img']
         content_synopsis = form['content_synopsis']
-
-
-        
-        # TODO make sure form results are acceptable and save them
+        content_status = form['content_status']
 
         # blank input
         if content_title == "":
@@ -536,6 +535,9 @@ def edit_content(content_type, content_title):
 
         if content_synopsis == "":
                 content_synopsis = 'No sypnosis has been provided.'
+                
+        if content_status == "":
+            content_status == "Unspecified"
             
         # existing content
         found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
@@ -549,6 +551,7 @@ def edit_content(content_type, content_title):
         content.title = content_title
         content.synopsis = content_synopsis
         content.poster = content_img
+        content.status = content_status
         db.session.commit()
         
         # Success message
@@ -751,7 +754,6 @@ def search():
         
         search_name = "%{}%".format(search_input)
         found = None
-        
  
         match search_param:
             case "group":

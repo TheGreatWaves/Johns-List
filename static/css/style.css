@@ -12,7 +12,7 @@
 }
 
 .default-text-color {
-    color: #AAAAAA;
+    color: #AAAAAA !important;
 }
 
 /* Submit button */

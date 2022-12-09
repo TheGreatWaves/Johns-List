@@ -155,23 +155,29 @@ class Group( db.Model ):
 
 
 class Content( db.Model ):
-    content_id = db.Column( 'content_id', db.Integer, primary_key = True, autoincrement = True )
-    title = db.Column( db.String(100), nullable=False )
-    status = db.Column( db.Integer )
-    genre = db.Column( db.String(20) )
-    theme = db.Column( db.String(40) )
-    demographic = db.Column( db.String(7) )
-    content_type = db.Column( db.CHAR(5) )
-    season = db.Column( db.Integer )
-    duration = db.Column( db.Integer )
-    poster = db.Column( db.String(300) )
-    synopsis = db.Column( db.String(2000) )
+    content_id      = db.Column( 'content_id', db.Integer, primary_key = True, autoincrement = True )
+    title           = db.Column( db.String(100), nullable=False )
+    status          = db.Column( db.Integer )
+    genre           = db.Column( db.String(20) )
+    theme           = db.Column( db.String(40) )
+    demographic     = db.Column( db.String(7) )
+    content_type    = db.Column( db.CHAR(5) )
+    season          = db.Column( db.Integer )
+    duration        = db.Column( db.Integer )
+    poster          = db.Column( db.String(300) )
+    synopsis        = db.Column( db.String(2000) )
+    status          = db.Column( db.SmallInteger() )
+    
+    # For string conversion
+    status_dict = {-1: "Unspecified", 0: "Completed", 1: "Ongoing"}
     
     def __init__(self, title, content_type):
         self.title = title
         self.content_type = content_type
         self.poster = None
         self.synopsis = "No synopsis has been provided."
+        self.status = -1
+        
         
     def find(name, type):
         return Content.query.filter((Content.title == name) & (Content.content_type == type)).first()
@@ -289,15 +295,10 @@ class Person( db.Model ):
     last_name = db.Column( db.String(20) )
     DOB = db.Column(db.Date, nullable=True, default=None)
         
-        
 class Company( db.Model ):
     com_id = db.Column( db.Integer, primary_key=True, autoincrement=True)
     com_name = db.Column( db.String(20) )
     com_est = db.Column(db.Date, nullable=True, default=None)
-    
-class Status( db.Model ):
-    id = db.Column( db.Integer, primary_key=True, autoincrement=False)
-    status = db.Column( db.String(11) )
     
 class Format( db.Model ):
     content_type = db.Column( db.String(5), primary_key=True )

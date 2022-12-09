@@ -4,44 +4,61 @@
 <link rel="stylesheet" href={{ url_for('static', filename="css/style.css" ) }}>
 
 <style>
-p, h1, h2, h3 {
-    color: #AAAAAA;
-}
+    p,
+    h1,
+    h2,
+    h3 {
+        color: #AAAAAA;
+    }
 
-p.sub-heading {
-    font-weight: bold;
-}
-input[type=text], select, textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ccc;
-  color: #AAAAAA;
-  background-color: #131313;
-  border-radius: 4px;
-  resize: vertical;
-}
-label {
-  padding: 12px 12px 12px 0;
-  display: inline-block;
-  color: #AAAAAA;
-}
-/* Center image  */
-.center {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-}
+    p.sub-heading {
+        font-weight: bold;
+    }
 
-a.default {
-    background-color: #8885DA;
-}
+    input[type=text],
+    select,
+    textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        color: #AAAAAA;
+        background-color: #131313;
+        border-radius: 4px;
+        resize: vertical;
+    }
 
-a.default:hover {
-    background-color: #53518e;
-    color: #0E0E0E;
-}
+    label {
+        padding: 12px 12px 12px 0;
+        display: inline-block;
+        color: #AAAAAA;
+    }
 
+    /* Center image  */
+    .center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+    }
+
+    a.default {
+        background-color: #8885DA;
+    }
+
+    a.default:hover {
+        background-color: #53518e;
+        color: #0E0E0E;
+    }
+
+    .status-btn {
+        background-color: transparent !important;
+        color: #AAAAAA !important;
+        border: 1px solid #ccc !important;
+    }
+
+    option {
+        background-color: #131313;
+    }
 </style>
 
 {% endblock %}
@@ -57,37 +74,84 @@ a.default:hover {
 </div> -->
 <div class="container">
     <form method="POST">
-    <div class="row">
-        <!-- Top row containing content title  -->
-        <div class="col">
-            <label for="content_title" >Content Title</label>
-            <input type="text" id="content_title" name="content_title" value="{{content.title}}">
-        </div>
-    </div>
-    <br>
-    <div class="row">
-        <!-- Left column -->
-        <div class="col-sm-3 well">
-            <div class="well">
-                <label for="content_img">Content Image URL</label>
-                <input type="text" id="content_img" name="content_img" value="{{content.poster}}">
-                <img src="{{ content.poster }}" class="center" alt="poster">
+        <div class="row">
+            <!-- Top row containing content title  -->
+            <div class="col">
+                <label for="content_title">Content Title</label>
+                <input type="text" id="content_title" name="content_title" value="{{content.title}}">
+            </div>
+
+            <div class="col-md-2">
+                <button class="btn default" style="margin-left: 10px; margin-top: 50px; width: 50%;"
+                    type="submit">Save</button>
             </div>
         </div>
 
-        <!-- Right column -->
-        <div class="col-sm-9 well">
-            <div class="well" style="margin-top: 1em">
-            <label for="content_synopsis">Synopsis</label>
-            <textarea id="content_synopsis" name="content_synopsis" style="height:500px">{{content.synopsis}}</textarea>
+        <hr>
+
+        <div class="row">
+            <!-- Left column -->
+            <div class="col-sm-3 well">
+
+                <!-- Poster -->
+                <div class="well">
+                    <label for="content_img">Content Image URL</label>
+                    <input type="text" id="content_img" name="content_img" value="{{content.poster}}">
+                    <img src="{{ content.poster }}" class="center" alt="poster">
+                </div>
+
+                <hr>
+
+
+                <!-- Status -->
+                <div class="row" style="position: relative;">
+                    <div class="col-2 well default-text-color text-center">
+                        <label for="content_status">Status</label>
+                    </div>
+
+                    <div class="col well" style="box-sizing: border-box; margin: auto;">
+                        <div class="input-group-btn search-panel" style="width: 100%; box-sizing: inherit;">
+                            <select name="content_status" id="content_status" class="btn status-btn dropdown-toggle"
+                                data-toggle="dropdown" style="text-align-last: center;">
+
+                                <!-- I don't know how to write this any other way, it pains my heart to write this -->
+
+                                {% if content.status == -1 %}
+                                <option value="-1" selected>Unspecified</option>
+                                {% else %}
+                                <option value="-1">Unspecified</option>
+                                {% endif %}
+
+                                {% if content.status == 0 %}
+                                <option value="0" selected>Completed</option>
+                                {% else %}
+                                <option value="0">Completed</option>
+                                {% endif %}
+
+                                {% if content.status == 1 %}
+                                <option value="1" selected>Ongoing</option>
+                                {% else %}
+                                <option value="1">Ongoing</option>
+                                {% endif %}
+
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Right column -->
+            <div class="col-sm-9 well">
+                <div class="well" style="margin-top: 1em">
+                    <label for="content_synopsis">Synopsis</label>
+                    <textarea id="content_synopsis" name="content_synopsis"
+                        style="height:500px">{{content.synopsis}}</textarea>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="row text-center" style="margin-top: 5px">
-        <button class="btn default" style="margin-left: 10px; width: 22.75%;" type="submit" >Submit changes</button>
-    </div>
-    
-</form>
+    </form>
 </div>
 {% endblock %}

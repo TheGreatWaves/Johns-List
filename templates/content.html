@@ -54,24 +54,28 @@
     }
 
     .dropdown-content {
-    display: flex !important;
-    background-color: #1C1C1C !important;
-    color: #AAAAAA !important;
+        display: flex !important;
+        background-color: #1C1C1C !important;
+        color: #AAAAAA !important;
     }
 
     .dropdown-menu-center:hover {
-    background-color: #242424 !important;
+        background-color: #242424 !important;
     }
 
     /*
      *  Hide ugly borders :)
      */
-    a.stretched-link:active
-    {
+    a.stretched-link:active {
         border-color: transparent !important;
     }
 
-
+    button.default {
+        background-color: transparent;
+        color: #AAAAAA;
+        border-color: #AAAAAA;
+        line-height: 15px;
+    }
 </style>
 
 {% endblock %}
@@ -96,12 +100,11 @@
         </div>
 
         <!-- Edit rating modal -->
-        <!-- <a class="btn nice" style="width: 12%; margin:auto; height:5%"
-        href="{{ url_for('set_rating_modal', content_title=content.title, content_type=content.content_type) }}"
-        role="button">
-        Set Rating -->
-    </a>
-
+        <a class="btn nice" style="width: 12%; margin:auto; height:5%"
+            href="{{ url_for('set_rating_modal', content_title=content.title, content_type=content.content_type) }}"
+            role="button">
+            Set Rating
+        </a>
     </div>
 </div>
 {% endblock %}
@@ -115,12 +118,16 @@
         {% else %}
         <img src="{{ url_for('static', filename='place_holder_img.png') }}" class="center rounded" alt="poster">
         {% endif %}
-
-        
     </div>
 
     <!-- Add to list button -->
     {% include 'add_to_list.html' %}
+
+    <hr>
+
+    <div class="well default-text-color">
+        <b>Status</b>: {{ content.status_dict[content.status] | default("Unspecified") }}
+    </div>
 
 </div>
 

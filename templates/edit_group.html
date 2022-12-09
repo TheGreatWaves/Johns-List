@@ -81,9 +81,14 @@
             <h2>{{ group.name }}</h2>
         </div>
         {% endif %}
+
         {% if not unknown_user %}
         <div class="col-md-2 text-end">
+            {% if is_owner %}
             <button class="btn default" style="margin-left: 10px; margin-top: 50px; width: 50%;" type="submit">Save</button>
+            {% else %}
+            <button class="btn default" style="margin-left: 10px; margin-top: 12px; width: 50%;" type="submit">Save</button>
+            {% endif %}
         </div>
         {% endif %}
     </div>
