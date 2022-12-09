@@ -135,7 +135,7 @@ class Group( db.Model ):
         # Add lists
         group_watch_list = List(self.group_id, 'g', 'watchlist')
         group_completed_list = List(self.group_id, 'g', 'completed')
-        self.img_url = None
+        self.img_url = "https://geodash.gov.bd/uploaded/people_group/default_group.png"
         self.set_default_info()
         
         self.lists.append(group_watch_list)        # At index 0

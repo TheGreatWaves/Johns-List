@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<link rel="stylesheet" href={{ url_for('static', filename="css/style.css" ) }}>
+
+<style>
+  select.search,
+  select.search:hover,
+  select.search:active,
+  select.search:checked {
+    background-color: transparent !important;
+    color: #AAAAAA !important;
+    border-color: transparent !important;
+  }
+
+
+  input.search-form,
+  input.search-form:focus {
+    background-color: transparent;
+    border-color: #AAAAAA;
+    color: #AAAAAA;
+  }
+
+  div.search-bar {
+    background-color: transparent;
+    /* border-color: #AAAAAA !important; */
+    /* border-radius: 2px !important; */
+    color: #AAAAAA;
+  }
+
+  button.search-button {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    background-color: transparent !important;
+    color: #AAAAAA;
+  }
+
+  button.search-button:hover {
+    background-color: #53518e !important;
+    color: #0E0E0E;
+  }
+</style>
+
+
+{% endblock %}
+
+{% block title %}
+<title>Search user</title>
+{% endblock %}
+
+{% block content %}
+
+<div class="card mx-auto" style="width: 50%; background-color: #0E0E0E;">
+
+  <!-- Search bar -->
+  <div class="container square-box d-flex justify-content-center">
+    <div class="row" style="width: 50%;">
+      <div class="col no border border-white rounded" style="margin:0px; padding:0px; display:inline">
+        <form method="POST" action="#" method="get" id="searchForm" class="input-group"
+          style="margin:0px; padding:0px;">
+
+          <div class="input-group-btn search-panel">
+            <select name="search_param" id="search_param" class="btn search dropdown-toggle" data-toggle="dropdown"
+              style="text-align-last: center;">
+
+              <!-- I don't know how to write this any other way, it pains my heart to write this -->
+              {% if category == 'user' %}
+              <option value="user" selected>User</option>
+              {% else %}
+              <option value="user">User</option>
+              {% endif %}
+
+              {% if category == 'group' %}
+              <option value="group" selected>Group</option>
+              {% else %}
+              <option value="group">Group</option>
+              {% endif %}
+
+              
+            </select>
+          </div>
+
+          <input type="text" class="form-control search-form" name="user_input" id="user_input" placeholder="">
+          <span class="input-group-btn">
+            <button class="btn btn-default search-button" type="submit" style="width: 100%; height: 100%;">
+              Search
+            </button>
+          </span>
+        </form>
+      </div>
+    </div>
+  </div> <!-- Search bar -->
+
+
+  <!-- Different categories -->
+
+  <!-- User -->
+  {% if category == 'user' %}
+  <ul class="list-group list-group-flush" style="background-color: #0E0E0E">
+    {% if results %}
+      {% for result in results %}
+      <li class="list-group-item" style="background-color: #53518e">
+        <div class="row">
+
+          <div class="col-1 well">
+            <img src="{{ result.profile_pic_url }}" class="center shadow rounded img-fluid px-0 h-100" alt="poster" style="object-fit:fill;">
+          </div>
+          <div class="col-11">
+            <a class="btn d-inline-flex align-items-center"
+              style="width: 100%; height: 100%; color: #AAAAAA; background-color: #0E0E0E; align-items: center"
+              href="{{ url_for('user', username=result.username) }}" role="button">
+              {{ result.username }}
+            </a>
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+      {% else %}
+      <li class="list-group-item" style="background-color: #53518e">
+        <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
+          <a class="btn" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E">No user found</a>
+        </div>
+      </li>
+      {% endif %}
+  </ul>
+  <!-- User end -->
+  
+  <!-- Group -->
+{% elif category == 'group' %}
+<ul class="list-group list-group-flush" style="background-color: #0E0E0E">
+  {% if results %}
+  {% for result in results %}
+  <li class="list-group-item" style="background-color: #53518e">
+    <div class="row">
+
+      <div class="col-1 well" style="height: 50px;">
+        <img src="{{ result.img_url }}" class="center shadow rounded img-fluid px-0 h-100" alt="poster" style="object-fit:fill;">
+      </div>
+      <div class="col-11">
+        <a class="btn d-inline-flex align-items-center"
+          style="width: 100%; height: 100%; color: #AAAAAA; background-color: #0E0E0E; align-items: center"
+          href="{{ url_for('group', group_name=result.name) }}" role="button">
+          {{ result.name }}
+        </a>
+      </div>
+    </div>
+  </li>
+  {% endfor %}
+  {% else %}
+  <li class="list-group-item" style="background-color: #53518e">
+    <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
+      <a class="btn" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E">No group found</a>
+    </div>
+  </li>
+  {% endif %}
+</ul>
+<!-- Group end -->
+{% endif %}
+
+
+</div>
+{% endblock %}

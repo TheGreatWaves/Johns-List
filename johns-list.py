@@ -77,7 +77,6 @@ def is_user(user_name):
 /group/<group_name>/leave
 /group/<group_name>/edit
 /group/<group_name>
-/search_group/
 /create_content/
 /content/<content_type>/<content_title>
 /content/search/
@@ -428,19 +427,6 @@ def group(group_name):
     is_member = members_q.filter(User.user_id == whoami().user_id).first()
 
     return render_template('group.html', group=group, members=members, is_member=is_member)
-
-# Search Group
-@app.route('/search_group/', methods=['GET', 'POST'])
-def search_group():
-    if request.method == 'GET':
-        return render_template('search_group.html')
-    elif request.method == 'POST':
-
-        group_name = request.form['group_name']
-        search_name = "%{}%".format(group_name)
-        groups = Group.query.filter(Group.name.like(search_name)).order_by(Group.name).all()
-        
-        return render_template('search_group.html', groups=groups)
     
 # Content related...
 
@@ -748,25 +734,32 @@ def rate_content(content_type, content_title):
 @app.route("/content/<content_type>/<content_title>/rate_modal/", methods=['GET', 'POST'])
 def set_rating_modal(content_type, content_title):
     if request.method == 'GET':
-        #content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
         return redirect(url_for('rate_content',content_type=content_type, content_title=content_title))
     
     if request.method == 'POST':
-        #content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
         return redirect(url_for('rate_content',content_type=content_type, content_title=content_title))
 
 # Search Group
-@app.route('/search/user/', methods=['GET', 'POST'])
-def search_user():
+@app.route('/search/', methods=['GET', 'POST'])
+def search():
     if request.method == 'GET':
-        return render_template('search_user.html')
+        return render_template('search.html')
     elif request.method == 'POST':
-
-        username = request.form['username']
-        search_name = "%{}%".format(username)
-        users = User.query.filter(User.username.like(search_name)).order_by(User.username).all()
         
-        return render_template('search_user.html', users=users)
+        search_input = request.form['user_input']
+        search_param = request.form['search_param']
+        
+        search_name = "%{}%".format(search_input)
+        found = None
+        
+ 
+        match search_param:
+            case "group":
+                found = Group.query.filter(Group.name.like(search_name)).order_by(Group.name).all()
+            case "user":
+                found = User.query.filter(User.username.like(search_name)).order_by(User.username).all()
+        
+        return render_template('search.html', results=found, category=search_param)
 
 
 #=========================================#
