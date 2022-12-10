@@ -173,7 +173,10 @@ class Content( db.Model ):
     genres          = db.relationship('Genre', secondary=content_genre, backref='contents')
     
     adaptation_id   = db.Column( db.Integer, db.ForeignKey("content.content_id"))
-    adaptation      = db.relationship("Content", backref=db.backref("adapted_from", remote_side=[content_id]))
+    adaptation      = db.relationship("Content", backref=db.backref("adapted_from", remote_side=[content_id]), foreign_keys=[adaptation_id])
+    
+    sequel_id       = db.Column( db.Integer, db.ForeignKey("content.content_id"))
+    sequel          = db.relationship("Content", backref=db.backref("prequel", remote_side=[content_id]), foreign_keys=[sequel_id])
     
     # For string conversion
     status_dict = {-1: "Unspecified", 0: "Completed", 1: "Ongoing"}
@@ -187,12 +190,44 @@ class Content( db.Model ):
         
         self.set_type()
         
+    def set_sequel(self, other):
+        
+        if self.sequel != None and len(self.sequel) >= 1:
+            self.sequel.remove(self.sequel[-1])
+        
+        if other == None:
+            return
+        
+        self.sequel.append(other)
+        
+    def set_prequel(self, other):
+        
+        if other.sequel != None and len(other.sequel) >= 1:
+            other.sequel.remove(other.sequel[-1])
+        
+        if other == None:
+            return
+        
+        other.sequel.append(self)
+        
     def set_adaptation(self, other):
         match( self.content_type ):
             case "Anime":
                 other.adaptation.append(self)
             case "Manga":
                 self.adaptation.append(other)
+                
+    def remove_adaptation(self, other):
+        match( self.content_type ):
+            case "Anime":
+                other.adaptation.delete(self)
+            case "Manga":
+                self.adaptation.delete(other)
+    
+    def disconnect_source(self):
+        if self.content_type == "Anime":
+            self.adapted_from.adaptation.remove(self)
+       
         
     def set_type(self):
         match( self.content_type ):

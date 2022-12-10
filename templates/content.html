@@ -139,20 +139,40 @@
         <img src="{{ url_for('static', filename='place_holder_img.png') }}" class="center rounded" alt="poster">
         {% endif %}
     </div>
-
+    
     <!-- Add to list button -->
     {% with has_content=has_content %}
         {% include 'add_to_list.html' %}
     {% endwith %}
     <hr> 
-
     <!-- Status -->
     <div class="well default-text-color">
         <b>Type</b>: {{ content.content_type }}
+
+        {% if content.content_type == 'Anime' and content.season %}
+        <br>
+        <b>Season</b>: {{ content.season }}
+        {% endif %}
+
         <br>
         <b>Status</b>: {{ content.status_dict[content.status] | default("Unspecified") }}
+
         <br>
-        <b>Score</b>: {{ rating.score }} ({{ rating.count }})  
+        <b>Score</b>: {{ rating.score }} ({{ rating.count }})
+
+        {% if content.sequel %}
+        <br>
+        {% for seq in content.sequel %}
+        <b>Sequel</b>: <a href="{{ url_for('content', content_title=seq.title, content_type=seq.content_type) }}" style="text-decoration: none; color: #53518e;">{{ seq.title }}</a>
+        {% endfor %}
+        {% endif %}
+
+        {% if content.prequel %}
+        <br>
+        <b>Prequel</b>:  <a href="{{ url_for('content', content_title=content.prequel.title, content_type=content.prequel.content_type) }}" style="text-decoration: none; color: #53518e;">{{ content.prequel.title }}</a>
+        {% endif %}
+
+        
     </div>
 
     <hr>

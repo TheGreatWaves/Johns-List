@@ -137,8 +137,18 @@
                             </select>
                         </div>
                     </div>
-
                 </div>
+
+                <!-- Season info -->
+                <div class="row" style="position: relative;">
+                    <div class="col-3 well default-text-color text-center">
+                        <label for="season">Season</label>
+                    </div>
+                    <div class="col-4 well" style="box-sizing: border-box; margin: auto;">
+                        <input type="text" id="season" name="season" value="{{ content.season }}" style="width: 100%; box-sizing: inherit;">
+                    </div>
+                </div>
+
 
                 <hr>
 
@@ -147,14 +157,19 @@
                 <input type="text" id="tags" name="tags" value="{{ tags }}">
 
                 <!-- Adaptation -->
-                {% if content.adaptation %}
+                {% if content.adapted_from %}
+                <label for="adaptation">Adapted From</label>
+                <input type="text" id="adaptation" name="adaptation" value="{{ content.adapted_from.title }}">
+                {% elif content.content_type == 'Anime' %}
                 <label for="adaptation">Adaptation</label>
-                {% for adpt in content.adaptation %}
-                <input type="text" id="adaptation" name="adaptation" value="{{ adpt.title }}">
-                {% endfor %}
+                <input type="text" id="adaptation" name="adaptation" value="None">
+                {% endif %}
+
+                <label for="sequel">Sequel / Prequel</label>
+                {% if content.sequel %}
+                <input type="text" id="sequel" name="sequel" value="{{ content.sequel.title }}">
                 {% else %}
-                <label for="adaptation">Adaptation</label>
-                <input type="text" id="adaptation" name="adaptation" value="">
+                <input type="text" id="sequel" name="sequel" value="None">
                 {% endif %}
 
             </div>

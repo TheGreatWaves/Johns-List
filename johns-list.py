@@ -108,13 +108,11 @@ class SearchResult:
 # Index
 @app.route("/")
 def index():
-    print("THE URL: ", url_for('static', filename='place_holder_pfp.png'))
     return render_template("index.html")
 
 # About page
 @app.route("/about/")
 def about():
-    print("THE URL: ", url_for('static', filename='place_holder_pfp.png'))
     return render_template("about.html")
 
 # Sign up 
@@ -567,8 +565,6 @@ def edit_content(content_type, content_title):
             content_title = found.title
             content_type = found.content_type
             tags = ''.join([str(tag.name) + ', ' for tag in found.genres])[0: -2]
-            
-            print(f'tags: {tags}')
 
         if not logged_in():
             session['last_page'] = url_for('edit_content',content_type=content_type, content_title=content_title)
@@ -585,9 +581,59 @@ def edit_content(content_type, content_title):
         content_synopsis = form['content_synopsis']
         content_status = form['content_status']
         content_tags = form['tags']
-        adpt = form['adaptation']
+        adpt = form.get('adaptation')
+        season = form['season']
+        sequel = form['sequel']
         
-        if adpt != "":
+        if sequel != "" and sequel.lower() != "none":
+            
+            l = sequel.split(' ')
+            
+            if len(l) <= 1:
+                flash('Expected two arguments! <sequel/prequel> <content title>', 'danger')
+                return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
+            
+            split = sequel.split(', ')
+            
+            for i in range(0, len(split), 2):
+                
+                type, title = split[i], split[i+1]
+                
+                if title.lower() == "none":
+                    if type.lower() == "prequel":
+                        found = Content.query.filter(Content.content_id == content.sequel_id).first()
+                        if found:
+                            found.sequel.remove(content)
+                    elif type.lower() == "sequel":
+                        content.sequel = []
+                    continue
+                
+                search_content = Content.query.filter(Content.title.like("%{}%".format(title))).first()
+                
+                if search_content is None:
+                    flash('No sequel/prequel content found', 'danger')
+                    return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
+                
+                if type.lower() == "prequel":
+                    content.set_prequel(search_content)
+                elif type.lower() == "sequel":
+                    content.set_sequel(search_content)
+                
+        elif sequel.lower() == "none":
+            content.sequel = []
+            
+            found = Content.query.filter(Content.content_id == content.sequel_id).first()
+            if found:
+                found.sequel.remove(content)
+            
+        
+        if season != "":
+            content.season = season
+            
+            if season.lower() == "none":
+                content.season = None
+        
+        if adpt != "" and adpt.lower() != "none":
             found = Content.query\
                 .filter(Content.title.like("%{}%".format(adpt)))\
                 .filter((Content.content_id != content.content_id) & (Content.content_type != content.content_type))\
@@ -595,13 +641,20 @@ def edit_content(content_type, content_title):
             
             if found:
                 content.set_adaptation(found)
+        elif adpt.lower() == "none":
+            content.disconnect_source()
         
         if content_tags != "":
-            content.genres = []
             tags = content_tags.split(", ")
             
+            # Add all tags (will skip dupes automatically)
             for tag in tags:
                 content.set_genre(Genre(tag))
+            
+            # Remove tags we don't have anymore
+            for tag in content.genres:
+                if tag.name not in tags:
+                    content.genres.remove(tag)
 
         # blank input
         if content_title == "":
@@ -667,7 +720,7 @@ def list_remove_content(content_type, content_title):
     
     # Handle login
     if not logged_in():
-        session['last_page'] = url_for('list_add_content', content_type=content_type, content_title=content_title, listnum=listnum)
+        session['last_page'] = url_for('list_add_content', content_type=content_type, content_title=content_title)
         return redirect(url_for('signin'))
     
     user = whoami()
@@ -698,7 +751,6 @@ def group_list_add_content(content_type, content_title, group_id):
         session['last_page'] = url_for('group_list_add_content', content_type=content_type, content_title=content_title, group_id=group_id)
         return redirect(url_for('signin'))
     
-    print('GPID', group_id)
     group = Group.query.filter_by(group_id = group_id).first()
     content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
     
