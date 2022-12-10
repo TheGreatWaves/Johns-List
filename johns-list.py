@@ -6,6 +6,7 @@ Add and implement entry points here (We could move them out later if desired.)
 # Flask
 from flask import Flask, render_template, request, redirect, flash, session, url_for
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql.expression import func
 import random
 
 # For hashing
@@ -109,7 +110,8 @@ class SearchResult:
 @app.route("/")
 def index():
     print("THE URL: ", url_for('static', filename='place_holder_pfp.png'))
-    return render_template("index.html")
+    contents = Content.query.order_by(func.random()).limit(6)
+    return render_template("index.html", contents = contents)
 
 # About page
 @app.route("/about/")
