@@ -1,9 +1,25 @@
 <div class="btn-group" style="width: 100%; margin-top: 10px;">
+    
+    {% if has_content == 0 %}
     <a class="btn nice" style="width: 100%;"
         href="{{ url_for('list_add_content', content_title=content.title, content_type=content.content_type) }}"
         role="button">
         Add to my list
     </a>
+    {% else %}
+    <a class="btn not-nice" style="width: 100%;"
+        href="{{ url_for('list_remove_content', content_title=content.title, content_type=content.content_type, listnum=has_content) }}"
+
+        role="button">
+    
+        {% if has_content == 1 %}
+            Added
+        {% elif has_content == 2 %}
+            Completed
+        {% endif %}
+    </a>
+
+    {% endif %}
     <button type="button" class="btn nice dropdown-toggle dropdown-toggle-split" id=""
         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
     </button>

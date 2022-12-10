@@ -25,10 +25,13 @@
 
     a.default:hover,
     button.nice:hover,
-    a.nice:hover {
-        background-color: #53518e;
-        color: #0E0E0E;
+    a.nice:hover,
+    a.not-nice:hover,
+    button.edit:hover {
+        background-color: #53518e !important;
+        color: #0E0E0E !important;
     }
+
 
     button.edit {
         margin-left: 10px;
@@ -38,11 +41,18 @@
         border-color: #AAAAAA
     }
 
+    a.not-nice {
+        background-color: transparent !important;
+        color: #53518e !important;
+        border-color: #AAAAAA !important;
+    }
+
+
     button.nice,
     a.nice {
-        background-color: transparent;
-        color: #AAAAAA;
-        border-color: #AAAAAA
+        background-color: transparent !important;
+        color: #AAAAAA !important;
+        border-color: #AAAAAA !important;
     }
 
     .dropdown-menu-center {
@@ -73,13 +83,15 @@
         line-height: 15px;
     }
 
-    .content-tag {
+    .content-tag,
+    .adaptation {
         color: #AAAAAA !important;
         background-color: #3b3b3b !important;
         margin-bottom: 5px;
     }
 
-    .content-tag:hover {
+    .content-tag:hover,
+    .adaptation:hover {
         color: #c0c0c0 !important;
         background-color: #505050 !important;
     }
@@ -127,17 +139,40 @@
         <img src="{{ url_for('static', filename='place_holder_img.png') }}" class="center rounded" alt="poster">
         {% endif %}
     </div>
-
+    
     <!-- Add to list button -->
-    {% include 'add_to_list.html' %}
-
+    {% with has_content=has_content %}
+        {% include 'add_to_list.html' %}
+    {% endwith %}
     <hr> 
-
     <!-- Status -->
     <div class="well default-text-color">
+        <b>Type</b>: {{ content.content_type }}
+
+        {% if content.content_type == 'Anime' and content.season %}
+        <br>
+        <b>Season</b>: {{ content.season }}
+        {% endif %}
+
+        <br>
         <b>Status</b>: {{ content.status_dict[content.status] | default("Unspecified") }}
+
         <br>
         <b>Score</b>: {{ rating.score }} ({{ rating.count }})
+
+        {% if content.sequel %}
+        <br>
+        {% for seq in content.sequel %}
+        <b>Sequel</b>: <a href="{{ url_for('content', content_title=seq.title, content_type=seq.content_type) }}" style="text-decoration: none; color: #53518e;">{{ seq.title }}</a>
+        {% endfor %}
+        {% endif %}
+
+        {% if content.prequel %}
+        <br>
+        <b>Prequel</b>:  <a href="{{ url_for('content', content_title=content.prequel.title, content_type=content.prequel.content_type) }}" style="text-decoration: none; color: #53518e;">{{ content.prequel.title }}</a>
+        {% endif %}
+
+        
     </div>
 
     <hr>
@@ -152,10 +187,26 @@
 
 <!-- Right column -->
 <div class="col-sm-9 well">
-    <div class="well" style="margin-top: 1em">
+    <div class="well" style="margin-top: 1em; margin-bottom: 2em;">
         <p class="sub-heading">Synopsis</p>
         <hr>
         <p style="white-space: pre-line">{{ content.synopsis }}</p>
     </div>
+
+    <!-- Adaptation -->
+    <div class="well" style="margin-top: 1em">
+        {% if content.content_type == 'Manga' and content.adaptation %}
+        <p class="sub-heading">Adaptation</p>
+        <hr>
+        {% for adpt in content.adaptation %}
+        <a class="btn adaptation" href="{{ url_for('content', content_title=adpt.title, content_type=adpt.content_type) }}" style="text-decoration: none">{{ adpt.title }}</a>
+        {% endfor %}
+        {% elif content.content_type == 'Anime' and content.adapted_from %}
+        <p class="sub-heading">Adapted From</p>
+        <hr>
+        <a class="btn adaptation" href="{{ url_for('content', content_title=content.adapted_from.title, content_type=content.adapted_from.content_type) }}" style="text-decoration: none">{{ content.adapted_from.title }}</a>
+        {% endif %}
+    </div> <!-- End of Adaptation -->
+
 </div>
 {% endblock %}

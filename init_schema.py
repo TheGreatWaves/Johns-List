@@ -162,9 +162,6 @@ class Content( db.Model ):
     content_id      = db.Column( 'content_id', db.Integer, primary_key = True, autoincrement = True )
     title           = db.Column( db.String(100), nullable=False )
     status          = db.Column( db.Integer )
-    genre           = db.Column( db.String(20) )
-    theme           = db.Column( db.String(40) )
-    demographic     = db.Column( db.String(7) )
     content_type    = db.Column( db.CHAR(5) )
     season          = db.Column( db.Integer )
     duration        = db.Column( db.Integer )
@@ -175,23 +172,68 @@ class Content( db.Model ):
     ratings         = db.relationship('Rating', backref='content')
     genres          = db.relationship('Genre', secondary=content_genre, backref='contents')
     
+    adaptation_id   = db.Column( db.Integer, db.ForeignKey("content.content_id"))
+    adaptation      = db.relationship("Content", backref=db.backref("adapted_from", remote_side=[content_id]), foreign_keys=[adaptation_id])
+    
+    sequel_id       = db.Column( db.Integer, db.ForeignKey("content.content_id"))
+    sequel          = db.relationship("Content", backref=db.backref("prequel", remote_side=[content_id]), foreign_keys=[sequel_id])
+    
     # For string conversion
     status_dict = {-1: "Unspecified", 0: "Completed", 1: "Ongoing"}
     
     def __init__( self, title, content_type ):
         self.title = title
-        self.content_type = content_type
+        self.content_type = content_type.capitalize()
         self.poster = None
         self.synopsis = "No synopsis has been provided."
         self.status = -1
         
         self.set_type()
         
+    def set_sequel(self, other):
+        
+        if self.sequel != None and len(self.sequel) >= 1:
+            self.sequel.remove(self.sequel[-1])
+        
+        if other == None:
+            return
+        
+        self.sequel.append(other)
+        
+    def set_prequel(self, other):
+        
+        if other.sequel != None and len(other.sequel) >= 1:
+            other.sequel.remove(other.sequel[-1])
+        
+        if other == None:
+            return
+        
+        other.sequel.append(self)
+        
+    def set_adaptation(self, other):
+        match( self.content_type ):
+            case "Anime":
+                other.adaptation.append(self)
+            case "Manga":
+                self.adaptation.append(other)
+                
+    def remove_adaptation(self, other):
+        match( self.content_type ):
+            case "Anime":
+                other.adaptation.delete(self)
+            case "Manga":
+                self.adaptation.delete(other)
+    
+    def disconnect_source(self):
+        if self.content_type == "Anime":
+            self.adapted_from.adaptation.remove(self)
+       
+        
     def set_type(self):
         match( self.content_type ):
-            case "anime":
+            case "Anime":
                 self.set_genre(GENRE_ANIME)
-            case "manga":
+            case "Manga":
                 self.set_genre(GENRE_MANGA)
         
     def find( name, type ):
