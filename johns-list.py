@@ -64,10 +64,11 @@ def is_user(user_name):
 # https://stackoverflow.com/questions/49245479/how-to-display-a-list-across-multiple-pages-in-flask
 class SearchResult:
     
-   def __init__(self, name, data, page = 1, number = 5):
-     self.__dict__ = dict(zip(['data', 'page', 'number'], [data, page, number]))
-     self.full_listing = [self.data[i:i+number] for i in range(0, len(self.data), number)]
+   def __init__(self, name, data, page, number):
+     self.data = data
      self.page = int(page)
+     self.number = int(number)
+     self.full_listing = [self.data[i:i+number] for i in range(0, len(self.data), number)]
      self.name = name
      self.pages = len(self.full_listing)
      
@@ -496,8 +497,7 @@ def content(content_type, content_title):
         if found:
             content_title = found.title
             content_type = found.content_type
-            content_rating = float("{:.2f}".format(round(found.avg_rating().one_or_none().avg_rating)))
-            rating = { 'score': content_rating, 'count': found.rating_count() }
+            rating = found.get_total_rating()
         
             return render_template('content.html', content=found, rating=rating)
         else:
@@ -514,13 +514,37 @@ def search_content():
     if request.method == 'GET':
         return render_template('search_content.html', contents=None)
     elif request.method == 'POST':
-        
         content_title = request.form['content_title']
-        search_name = "%{}%".format(content_title)
-        contents = Content.query.filter(Content.title.like(search_name)).order_by(Content.title).all()
-        return render_template('search_content.html', contents=contents)
+        
+        if content_title == "":
+            content_title = "all"
+        
+        return redirect(url_for('search_content_results', search_name=content_title, pagenum=1))
     return render_template('search_content.html')
 
+@app.route('/content/search/<search_name>/result/<pagenum>', methods=['GET', 'POST'])
+def search_content_results(search_name, pagenum):
+    
+    if request.method == 'GET':
+        if search_name == "all":
+            search_name = "%%"
+        else:
+            search_name = "%{}%".format(search_name)
+
+        contents = Content.query.filter(Content.title.like(search_name)).order_by(Content.title).all()
+        
+        # Set up the pagination
+        number_of_results = 4
+        results = SearchResult(f'/content/search/{search_name}/result/{pagenum}', contents, pagenum, number_of_results)
+        results.next = url_for('search_content_results', search_name=search_name, pagenum=int(pagenum)+1)
+        results.prev = url_for('search_content_results', search_name=search_name, pagenum=int(pagenum)-1)
+   
+        return render_template('search_content.html', contents=results)
+    elif request.method == 'POST':
+        content_title = request.form['content_title']
+        if content_title == "":
+            content_title = "all"
+        return redirect(url_for('search_content_results', search_name=content_title, pagenum=1))
 
 
 @app.route('/content/<content_type>/<content_title>/edit', methods=['GET', 'POST'])
@@ -727,10 +751,7 @@ def rate_content(content_type, content_title):
         
         content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
         if content:
-            content_rating = float("{:.2f}".format(round(content.avg_rating().one_or_none().avg_rating)))
-            rating = { 'score': content_rating, 'count': content.rating_count() }
-            
-            
+            rating = content.get_total_rating()
             return render_template('set_rating_modal.html',content=content, rating=rating)
         else:
             return render_template('content', content_type=content_type, content_title=content_title)
@@ -767,7 +788,7 @@ def set_rating_modal(content_type, content_title):
     if request.method == 'POST':
         return redirect(url_for('rate_content',content_type=content_type, content_title=content_title))
 
-# Search Group
+# Search Group/Users
 @app.route('/search/', methods=['GET', 'POST'])
 def search():
     if request.method == 'GET':
@@ -791,7 +812,14 @@ def search():
 @app.route('/tag/<tag>/<pagenum>')
 def search_tag(tag, pagenum):
     tag = Genre.query.filter_by(name = tag).first()
-    return render_template('search_content.html', tag=tag.name, contents = SearchResult(f'tag/{tag}', tag.contents, pagenum, 5))
+    
+    # Set up the pagination
+    number_of_results = 10
+    results = SearchResult(f'tag/{tag}', tag.contents, pagenum, number_of_results)
+    results.next = url_for('search_tag', tag=tag, pagenum=int(pagenum)+1)
+    results.prev = url_for('search_tag', tag=tag, pagenum=int(pagenum)+1) 
+
+    return render_template('search_content.html', tag=tag.name, contents=results)
 
 #=========================================#
 #    END OF ENTRY POINT INITIALIZATION    #

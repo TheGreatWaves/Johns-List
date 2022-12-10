@@ -60,6 +60,8 @@
 
 <div class="row">
   {% if contents %}
+
+  {% if contents.data %}
   {% for content in contents %}
   <!-- TODO: Make this better. -->
   <div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
@@ -75,7 +77,16 @@
   </div>
   {% endfor %}
 
-  {% if contents.page %}
+
+  {% else %} <!-- from if content.data -->
+  <div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
+    <div class="d-flex align-items-center" style="background-color: #1C1C1C;">
+      <h1 class="default-text-color text-center">No content </h1>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if contents.page >= 0 %}
   <!-- Next (html god help me)-->
   <div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
     <div class="d-flex align-items-center" style="background-color: #1C1C1C;">
@@ -88,15 +99,13 @@
               {%if contents.page == 1%}
               <a href="#" class="btn non-functional" tabindex="-1">Prev</a>
               {%else%}
-              <a href="{{ url_for('search_tag', tag=tag, pagenum=contents.page-1) }}"
-                class="btn navigation-btn">Prev</a>
+              <a href="{{ contents.prev }}" class="btn navigation-btn">Prev</a>
               {%endif%}
             </div>
 
             <!-- Next page -->
             {% if contents.page < contents.pages %} <div class="col d-flex justify-content-center">
-              <a href="{{ url_for('search_tag', tag=tag, pagenum=contents.page+1) }}"
-                class="btn navigation-btn">Next</a>
+              <a href="{{ contents.next }}" class="btn navigation-btn">Next</a>
           </div>
           {%else%}
           <div class="col d-flex justify-content-center">
@@ -108,14 +117,7 @@
     </div>
   </div>
   {% endif %}
-
-  {% else %}
-  <div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
-    <div class="d-flex align-items-center" style="background-color: #1C1C1C;">
-      <h1 class="default-text-color text-center">No content </h1>
-    </div>
-  </div>
-  {% endif %}
+  {% endif %} <!-- end if content -->
 
 </div>
 {% endblock %}

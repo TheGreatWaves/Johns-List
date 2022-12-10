@@ -201,8 +201,16 @@ class Content( db.Model ):
     def get_rating(self,uid):
         return Rating.query.filter_by(user_id=uid, content_id=self.content_id).first()
     
-    def avg_rating(self):
-        return Rating.query.with_entities(func.avg(Rating.content_rating).label('avg_rating')).filter(Rating.content_id == self.content_id)
+    def avg_score(self):
+        score = Rating.query.with_entities(func.avg(Rating.content_rating).label('avg_rating')).filter(Rating.content_id == self.content_id).one_or_none().avg_rating
+     
+        if score:
+            return float("{:.2f}".format(score))
+        else:
+            return 0.0
+        
+    def get_total_rating(self):
+        return { 'score': self.avg_score(), 'count': len(self.ratings) }
     
     def rating_count(self):
         return Rating.query.filter(Rating.content_id == self.content_id).count()
