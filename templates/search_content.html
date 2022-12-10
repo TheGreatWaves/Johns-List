@@ -58,66 +58,69 @@
   </div>
 </div>
 
-<div class="row">
-  {% if contents %}
+<div class="container-fluid">
+  <div class="row">
+    {% if contents %}
 
-  {% if contents.data %}
-  {% for content in contents %}
-  <!-- TODO: Make this better. -->
-  <div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
-    <div class="card-img-top d-flex align-items-center" style="background-color: #1C1C1C;">
-      <div>
-        <!-- Content image -->
-        <img class="img-fluid rounded" src="{{ content.poster }}" alt="content_img" width="120px" height="150px">
+    {% if contents.data %}
+    {% for content in contents %}
+    <!-- TODO: Make this better. -->
+    <div class="card mb-1" style="background-color: #1C1C1C; width: 100% !important;">
+      <div class="card-img-top d-flex align-items-center" style="background-color: #1C1C1C;">
+        <div>
+          <!-- Content image -->
+          <img class="img-fluid rounded" src="{{ content.poster }}" alt="content_img" width="144px" height="180px"
+            style="object-fit:cover;">
+        </div>
+        <p class="col p-2 m-0 default-text-color">{{ content.title }} ({{ content.content_type }})</p>
+        <a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}"
+          class="btn stretched-link"></a>
       </div>
-      <p class="col p-2 m-0 default-text-color">{{ content.title }} ({{ content.content_type }})</p>
-      <a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}"
-        class="btn stretched-link"></a>
     </div>
-  </div>
-  {% endfor %}
+    {% endfor %}
 
 
-  {% else %} <!-- from if content.data -->
-  <div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
-    <div class="d-flex align-items-center" style="background-color: #1C1C1C;">
-      <h1 class="default-text-color text-center">No content </h1>
+    {% else %} <!-- from if content.data -->
+    <div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
+      <div class="d-flex align-items-center" style="background-color: #1C1C1C;">
+        <h1 class="default-text-color text-center">No content </h1>
+      </div>
     </div>
-  </div>
-  {% endif %}
+    {% endif %}
 
-  {% if contents.page >= 0 %}
-  <!-- Next (html god help me)-->
-  <div class="card" style="margin-bottom: 5px; background-color: #1C1C1C;">
-    <div class="d-flex align-items-center" style="background-color: #1C1C1C;">
-      <div class="row df" style="width: 100%;">
-        <div class="col-2 mx-auto d-flex justify-content-center">
-          <div class="row">
+    {% if contents.page >= 0 %}
+    <!-- Next (html god help me)-->
+    <div class="card" style="width: 100%; background-color: #0E0E0E;">
+      <div class="d-flex align-items-center" style="background-color: #0E0E0E;">
+        <div class="row" style="width: 100%;">
+          <div class="col-2 mx-auto d-flex justify-content-center">
+            <div class="row">
 
-            <!-- Previous page -->
-            <div class="col d-flex justify-content-center">
-              {%if contents.page == 1%}
-              <a href="#" class="btn non-functional" tabindex="-1">Prev</a>
-              {%else%}
-              <a href="{{ contents.prev }}" class="btn navigation-btn">Prev</a>
-              {%endif%}
+              <!-- Previous page -->
+              <div class="col d-flex justify-content-center">
+                {%if contents.page == 1%}
+                <a href="#" class="btn non-functional" tabindex="-1">Prev</a>
+                {%else%}
+                <a href="{{ contents.prev }}" class="btn navigation-btn">Prev</a>
+                {%endif%}
+              </div>
+
+              <!-- Next page -->
+              {% if contents.page < contents.pages %} <div class="col d-flex justify-content-center">
+                <a href="{{ contents.next }}" class="btn navigation-btn">Next</a>
             </div>
-
-            <!-- Next page -->
-            {% if contents.page < contents.pages %} <div class="col d-flex justify-content-center">
-              <a href="{{ contents.next }}" class="btn navigation-btn">Next</a>
+            {%else%}
+            <div class="col d-flex justify-content-center">
+              <a href="#" class="btn non-functional" tabindex="-1">Next</a>
+            </div>
+            {%endif%}
           </div>
-          {%else%}
-          <div class="col d-flex justify-content-center">
-            <a href="#" class="btn non-functional" tabindex="-1">Next</a>
-          </div>
-          {%endif%}
         </div>
       </div>
     </div>
-  </div>
-  {% endif %}
-  {% endif %} <!-- end if content -->
+    {% endif %}
+    {% endif %} <!-- end if content -->
 
+  </div>
 </div>
 {% endblock %}

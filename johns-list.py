@@ -15,7 +15,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import yaml
 
 # App, db and tables
-from init_schema import app, db, User, Group, group_member_table, Content, List, Rating, Genre
+from init_schema import *
 
 # Load credentials
 cred = yaml.load(open('cred.yaml'), Loader=yaml.Loader)
@@ -534,7 +534,7 @@ def search_content_results(search_name, pagenum):
         contents = Content.query.filter(Content.title.like(search_name)).order_by(Content.title).all()
         
         # Set up the pagination
-        number_of_results = 4
+        number_of_results = 10
         results = SearchResult(f'/content/search/{search_name}/result/{pagenum}', contents, pagenum, number_of_results)
         results.next = url_for('search_content_results', search_name=search_name, pagenum=int(pagenum)+1)
         results.prev = url_for('search_content_results', search_name=search_name, pagenum=int(pagenum)-1)
@@ -733,7 +733,9 @@ def list_add_modal(content_type, content_title):
                     .order_by(Group.name)\
                     .all()
             
-            return render_template('list_add_modal.html', content=found, groups=user_groups)
+            rating = found.get_total_rating()
+            
+            return render_template('list_add_modal.html', content=found, groups=user_groups, rating=rating)
         else:
             flash('Content page not found', 'danger')
             return redirect('/')
@@ -817,7 +819,7 @@ def search_tag(tag, pagenum):
     number_of_results = 10
     results = SearchResult(f'tag/{tag}', tag.contents, pagenum, number_of_results)
     results.next = url_for('search_tag', tag=tag, pagenum=int(pagenum)+1)
-    results.prev = url_for('search_tag', tag=tag, pagenum=int(pagenum)+1) 
+    results.prev = url_for('search_tag', tag=tag, pagenum=int(pagenum)-1) 
 
     return render_template('search_content.html', tag=tag.name, contents=results)
 

@@ -172,36 +172,44 @@ class Content( db.Model ):
     synopsis        = db.Column( db.String(2000) )
     
     status          = db.Column( db.SmallInteger() )
+    ratings         = db.relationship('Rating', backref='content')
     genres          = db.relationship('Genre', secondary=content_genre, backref='contents')
     
     # For string conversion
     status_dict = {-1: "Unspecified", 0: "Completed", 1: "Ongoing"}
     
-    def __init__(self, title, content_type):
+    def __init__( self, title, content_type ):
         self.title = title
         self.content_type = content_type
         self.poster = None
         self.synopsis = "No synopsis has been provided."
         self.status = -1
         
-    def find(name, type):
+        self.set_type()
+        
+    def set_type(self):
+        match( self.content_type ):
+            case "anime":
+                self.set_genre(GENRE_ANIME)
+            case "manga":
+                self.set_genre(GENRE_MANGA)
+        
+    def find( name, type ):
         return Content.query.filter((Content.title == name) & (Content.content_type == type)).first()
 
-    ratings = db.relationship('Rating', backref='content')
-
-    def get_all_rating_q(self):
+    def get_all_rating_q( self ):
         return self.query.join(Rating)
 
-    def get_rating_count(self):
-        return self.get_all_rating_q().count()
+    def get_rating_count( self ):
+        return len(self.ratings)
 
-    def get_all_rating(self):
+    def get_all_rating( self ):
         return self.get_all_rating_q().all()
 
-    def get_rating(self,uid):
+    def get_rating( self, uid ):
         return Rating.query.filter_by(user_id=uid, content_id=self.content_id).first()
     
-    def avg_score(self):
+    def avg_score( self ):
         score = Rating.query.with_entities(func.avg(Rating.content_rating).label('avg_rating')).filter(Rating.content_id == self.content_id).one_or_none().avg_rating
      
         if score:
@@ -209,32 +217,37 @@ class Content( db.Model ):
         else:
             return 0.0
         
-    def get_total_rating(self):
-        return { 'score': self.avg_score(), 'count': len(self.ratings) }
+    def get_total_rating( self ):
+        return { 'score': self.avg_score(), 'count': self.rating_count() }
     
-    def rating_count(self):
-        return Rating.query.filter(Rating.content_id == self.content_id).count()
+    def rating_count( self ):
+        return len(self.ratings)
 
-    def add(self, uid, score):
-        rating = Rating(uid, score)
-        self.ratings.append(rating)
+    def add_rating( self, uid, score ):
+        rating = Rating( uid, score )
+        self.ratings.append( rating )
         return rating
 
     def set_rating( self, uid, score ):
         
-        rating = self.get_rating(uid)
+        rating = self.get_rating( uid )
         
         if rating is None:
-            self.add(uid, score)
+            self.add_rating( uid, score )
             return Rating.ADDED_RATING
         else:
             rating.content_rating = score
             return Rating.EDITTED_RATING
         
-    def set_genre(self, *args):
+    def set_genre( self, *args ):
         for genre in args:
-            self.genres.append(genre)
-
+            
+            existing = Genre.query.filter_by(name=genre.name).first()
+            if existing:
+                self.genres.append(existing)
+            else:
+                self.genres.append(genre)
+            
 # M-2-M relationship between list and content
 list_contents_table = db.Table('list_contents_table',
     db.Column('list_id', db.Integer, db.ForeignKey('list.list_id')),
@@ -330,9 +343,17 @@ class Genre( db.Model ):
     name = db.Column( db.String(20), primary_key=True, nullable=True )
     explicit = db.Column( db.Boolean, default=False, nullable=True )
     
-    def __init__(self, genre_name, explicit=False):
-        self.name = genre_name
+    def __init__( self, genre_name, explicit=False ):
+        self.name = genre_name.capitalize()
         self.explicit = explicit
+        
+    def make( genre_name, explicit=False ):
+        found = Genre.query.filter(Genre.name == genre_name).one_or_none()
+        
+        if found:
+            return found
+        
+        return Genre( genre_name, explicit )
     
 class Job( db.Model ):
     id = db.Column( db.Integer, primary_key=True)
@@ -362,6 +383,10 @@ GENRE_SCI_FI            = Genre('Sci-Fi')
 GENRE_SOL               = Genre('Slice of Life')
 GENRE_SUPERNATURAL      = Genre('Supernatural')
 GENRE_THRILLER          = Genre('Thriller')
+GENRE_TIME_TRAVEL       = Genre('Time Travel')
+GENRE_ANIME             = Genre('Anime')            # I know it's not really a genre 
+GENRE_MANGA             = Genre('Manga')
+GENRE_TRAGIC            = Genre('Tragic', True)
 
 #=============================#
 #           Set up            #
