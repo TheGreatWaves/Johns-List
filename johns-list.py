@@ -551,15 +551,19 @@ def search_content_results(search_name, pagenum):
 def edit_content(content_type, content_title):
     if request.method == 'GET':
         found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        tags = None
         if found:
             content_title = found.title
             content_type = found.content_type
-        
+            tags = ''.join([str(tag.name) + ', ' for tag in found.genres])[0: -2]
+            
+            print(f'tags: {tags}')
+
         if not logged_in():
             session['last_page'] = url_for('edit_content',content_type=content_type, content_title=content_title)
             return redirect(url_for('signin'))
         
-        return render_template('edit_content.html',content=found)
+        return render_template('edit_content.html',content=found, tags=tags)
 
     elif request.method == 'POST':
         content = Content.query.filter((Content.title==content_title) & (Content.content_type == content_type)).first()
@@ -569,6 +573,14 @@ def edit_content(content_type, content_title):
         content_img = form['content_img']
         content_synopsis = form['content_synopsis']
         content_status = form['content_status']
+        content_tags = form['tags']
+        
+        if content_tags != "":
+            content.genres = []
+            tags = content_tags.split(", ")
+            
+            for tag in tags:
+                content.set_genre(Genre(tag))
 
         # blank input
         if content_title == "":
