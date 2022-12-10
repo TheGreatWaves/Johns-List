@@ -146,6 +146,17 @@
                 <label for="tags">Tags</label>
                 <input type="text" id="tags" name="tags" value="{{ tags }}">
 
+                <!-- Adaptation -->
+                {% if content.adaptation %}
+                <label for="adaptation">Adaptation</label>
+                {% for adpt in content.adaptation %}
+                <input type="text" id="adaptation" name="adaptation" value="{{ adpt.title }}">
+                {% endfor %}
+                {% else %}
+                <label for="adaptation">Adaptation</label>
+                <input type="text" id="adaptation" name="adaptation" value="">
+                {% endif %}
+
             </div>
 
             <!-- Right column -->

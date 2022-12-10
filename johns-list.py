@@ -498,8 +498,19 @@ def content(content_type, content_title):
             content_title = found.title
             content_type = found.content_type
             rating = found.get_total_rating()
+            has_content = 0
+            
+            if logged_in():
+
+                list = whoami().lists
+                
+                if list[List.WATCH_LIST].has_content(found):
+                    has_content = 1
+                
+                if list[List.COMPLETED_LIST].has_content(found):
+                    has_content = 2
         
-            return render_template('content.html', content=found, rating=rating)
+            return render_template('content.html', content=found, rating=rating, has_content=has_content)
         else:
             flash('Content page not found', 'danger')
             return redirect('/')
@@ -574,6 +585,16 @@ def edit_content(content_type, content_title):
         content_synopsis = form['content_synopsis']
         content_status = form['content_status']
         content_tags = form['tags']
+        adpt = form['adaptation']
+        
+        if adpt != "":
+            found = Content.query\
+                .filter(Content.title.like("%{}%".format(adpt)))\
+                .filter((Content.content_id != content.content_id) & (Content.content_type != content.content_type))\
+                .first()
+            
+            if found:
+                content.set_adaptation(found)
         
         if content_tags != "":
             content.genres = []
@@ -635,6 +656,34 @@ def list_add_content(content_type, content_title):
             db.session.commit()
         else:
             flash(f'Content already in list', 'danger')
+            
+    else:
+        flash(f'Action failed', 'danger')
+        
+    return redirect(url_for('content', content_title=content_title, content_type=content_type))
+
+@app.route('/content/<content_type>/<content_title>/me/remove/', methods=['GET'])
+def list_remove_content(content_type, content_title):
+    
+    # Handle login
+    if not logged_in():
+        session['last_page'] = url_for('list_add_content', content_type=content_type, content_title=content_title, listnum=listnum)
+        return redirect(url_for('signin'))
+    
+    user = whoami()
+    content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+    
+    if content:
+        if user.lists[List.COMPLETED_LIST].has_content(content):
+            flash(f'Removed from completed list', 'success')
+            user.lists[List.COMPLETED_LIST].remove(content)
+            db.session.commit()
+        elif user.lists[List.WATCH_LIST].has_content(content):
+            flash(f'Removed from watch list', 'success')
+            user.lists[List.WATCH_LIST].remove(content)
+            db.session.commit()
+        else:
+            flash(f'Content already not in list', 'danger')
             
     else:
         flash(f'Action failed', 'danger')

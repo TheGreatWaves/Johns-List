@@ -121,7 +121,20 @@ def add_contents():
     aot             = add_content(contents_to_add, "Attack On Titan", "anime")
     oyasumi         = add_content(contents_to_add, "Oyasumi Punpun", "manga")
     horimiya        = add_content(contents_to_add, "Horimiya", "manga")
+    jjk_manga       = add_content(contents_to_add, "Jujutsu Kaisen", "manga")
     
+    
+    jjk_manga.poster = "https://upload.wikimedia.org/wikipedia/en/4/46/Jujutsu_kaisen.jpg"
+    jjk_manga.synopsis = "For some strange reason, Yuji Itadori, despite his insane athleticism "\
+        "would rather just hang out with the Occult Club. However, her soon finds out that the occult "\
+        "is as real as it gets when his fellow club members are attacked! Meanwhile, the mysterious Megumi "\
+        "Fushiguro is tracking down a special-grade cursed object, and his search leads him to Itadori..."
+    jujutsu_kaisen.set_genre(
+        GENRE_MAGIC,
+        GENRE_ACTION,
+        GENRE_ADVENTURE,
+        GENRE_SUPERNATURAL
+    )
     
     horimiya.poster = "https://nntheblog.b-cdn.net/wp-content/uploads/2022/05/Practicing-by-redrawing-Horimiya-Illustration.png.webp"
     horimiya.synopsis = "On the surface, the thought of Kyouko Hori and Izumi Miyamura getting along would be the last thing in people's minds. "\
@@ -256,7 +269,8 @@ def add_contents():
         GENRE_ACTION,
         GENRE_ADVENTURE,
         GENRE_SUPERNATURAL
-        )
+    )
+    jujutsu_kaisen.set_adaptation(jjk_manga)
                             
     rezero.poster = "https://m.media-amazon.com/images/M/MV5BN2NlM2Y5Y2MtYjU5Mi00ZjZiLWFjNjMtZDNiYzJlMjhkOWZiXkEyXkFqcGdeQXVyNjc2NjA5MTU@._V1_FMjpg_UX1000_.jpg"
     rezero.synopsis = "dude got sent into another world, but it's actually hell"

@@ -162,9 +162,6 @@ class Content( db.Model ):
     content_id      = db.Column( 'content_id', db.Integer, primary_key = True, autoincrement = True )
     title           = db.Column( db.String(100), nullable=False )
     status          = db.Column( db.Integer )
-    genre           = db.Column( db.String(20) )
-    theme           = db.Column( db.String(40) )
-    demographic     = db.Column( db.String(7) )
     content_type    = db.Column( db.CHAR(5) )
     season          = db.Column( db.Integer )
     duration        = db.Column( db.Integer )
@@ -175,23 +172,33 @@ class Content( db.Model ):
     ratings         = db.relationship('Rating', backref='content')
     genres          = db.relationship('Genre', secondary=content_genre, backref='contents')
     
+    adaptation_id   = db.Column( db.Integer, db.ForeignKey("content.content_id"))
+    adaptation      = db.relationship("Content", backref=db.backref("adapted_from", remote_side=[content_id]))
+    
     # For string conversion
     status_dict = {-1: "Unspecified", 0: "Completed", 1: "Ongoing"}
     
     def __init__( self, title, content_type ):
         self.title = title
-        self.content_type = content_type
+        self.content_type = content_type.capitalize()
         self.poster = None
         self.synopsis = "No synopsis has been provided."
         self.status = -1
         
         self.set_type()
         
+    def set_adaptation(self, other):
+        match( self.content_type ):
+            case "Anime":
+                other.adaptation.append(self)
+            case "Manga":
+                self.adaptation.append(other)
+        
     def set_type(self):
         match( self.content_type ):
-            case "anime":
+            case "Anime":
                 self.set_genre(GENRE_ANIME)
-            case "manga":
+            case "Manga":
                 self.set_genre(GENRE_MANGA)
         
     def find( name, type ):
