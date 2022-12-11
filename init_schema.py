@@ -192,8 +192,8 @@ class Content( db.Model ):
         
     def set_sequel(self, other):
         
-        if self.sequel != None and len(self.sequel) >= 1:
-            self.sequel.remove(self.sequel[-1])
+        if self.sequel and len(self.sequel) >= 1:
+            self.sequel = []
         
         if other == None:
             return
@@ -201,14 +201,18 @@ class Content( db.Model ):
         self.sequel.append(other)
         
     def set_prequel(self, other):
+        other.set_sequel(self)
         
-        if other.sequel != None and len(other.sequel) >= 1:
-            other.sequel.remove(other.sequel[-1])
-        
-        if other == None:
-            return
-        
-        other.sequel.append(self)
+    def remove_prequel(self):
+        found = self.get_prequel()
+        if found:
+            found.sequel.remove( self )
+
+    def get_prequel(self):
+        return self.prequel
+            
+    def remove_sequel(self):
+        self.sequel = []
         
     def set_adaptation(self, other):
         match( self.content_type ):

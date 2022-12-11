@@ -586,51 +586,84 @@ def edit_content(content_type, content_title):
         content_tags = form['tags']
         adpt = form.get('adaptation')
         season = form['season']
-        sequel = form['sequel']
+        sequel = form.get('sequel')
+        prequel = form.get('prequel')
+        
+        # Basic setup for sequel/prequel
+        if (sequel.lower() == "none" or sequel == ""):
+            content.remove_sequel()
+        
+        if (prequel.lower() == "none" or prequel == ""):
+            content.remove_prequel()
+            
+        # Sequel setup
+        alreadyHasSequel = len(content.sequel) > 0
+        
+        # Prequel setup
+        found = content.prequel
+        alreadyHasPrequel = found != None
+            
         
         # Assign Sequel
-        if sequel != "" and sequel.lower() != "none":
+        if sequel and sequel.lower() != "none":
             
-            l = sequel.split(' ')
+            newNotSameAsOld = not alreadyHasSequel or sequel != content.sequel[0].title
             
-            if len( l ) <= 1:
-                flash( 'Expected two arguments! <sequel/prequel> <content title>', 'danger' )
-                return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
-            
-            split = sequel.split(', ')
-            
-            for i in range(0, len(split), 2):
-                
-                type, title = split[i], split[i+1]
-                
-                if title.lower() == "none":
-                    if type.lower() == "prequel":
-                        found = Content.query.filter( Content.content_id == content.sequel_id ).first()
-                        if found:
-                            found.sequel.remove( content )
-                    elif type.lower() == "sequel":
-                        content.sequel = []
-                    continue
-                
-                search_content = Content.query.filter( Content.title.like( "%{}%".format( title ) ) ).first()
+            if newNotSameAsOld:
+                search_content = Content.query.filter( Content.title.like( "%{}%".format( sequel ) ) ).first()
                 
                 if search_content is None:
-                    flash( 'No sequel/prequel content found', 'danger' )
+                    flash( 'No sequel content found', 'danger' )
+                    return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
+               
+                # Avoid circular dependency
+                if content.title == search_content.title:
+                    flash( 'Invalid sequel entry, self referential error', 'danger' )
+                    return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
+               
+                # Clashes with prequel
+                if alreadyHasPrequel and search_content.title == content.prequel.title:
+                    flash( 'Sequel and prequel can not be the same', 'danger' )
                     return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
                 
-                match( type.lower() ):
-                    case "prequel":
-                        content.set_prequel( search_content )
-                    case "sequel":
-                        content.set_sequel( search_content )
+                content.set_sequel( search_content )
+        # Got blank or none
+        else: 
+            if content.sequel:
+                content.sequel = [] # Delete the sequel
+        
+         # Assign Prequel
+        if prequel and prequel.lower() != "none":
+        
+            newNotSameAsOld = not alreadyHasPrequel or prequel != found.sequel[0].title
+            
+            if newNotSameAsOld:
+                search_content = Content.query.filter( Content.title.like( "%{}%".format( prequel ) ) ).first()
                 
-        elif sequel.lower() == "none":
-            content.sequel = []
-            
-            found = Content.query.filter( Content.content_id == content.sequel_id ).first()
-            if found:
-                found.sequel.remove( content )
-            
+                if search_content is None:
+                    flash( 'No prequel content found', 'danger' )
+                    return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
+                    
+                # Avoid circular dependency
+                if content.title == search_content.title:
+                    flash( 'Invalid prequel entry, self referential error', 'danger' )
+                    return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
+                
+                # Clashes with sequel
+                if alreadyHasSequel and search_content.title == content.sequal[0].title:
+                    flash( 'Sequel and prequel can not be the same', 'danger' )
+                    return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
+                
+                content.set_prequel( search_content )
+        # Got blank or none
+        else: 
+            content.remove_prequel()
+        
+        
+        
+        
+        
+        
         
         if season != "":
             content.season = season
@@ -674,7 +707,7 @@ def edit_content(content_type, content_title):
                 content_synopsis = 'No sypnosis has been provided.'
                 
         if content_status == "":
-            content_status == "Unspecified"
+            content_status = -1
             
         # existing content
         found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()

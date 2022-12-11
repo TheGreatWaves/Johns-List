@@ -165,18 +165,24 @@
                 <input type="text" id="adaptation" name="adaptation" value="None">
                 {% endif %}
 
-                <label for="sequel">Sequel / Prequel</label>
+                <label for="sequel">Sequel</label>
+
                 <input type="text" id="sequel" name="sequel" value=
                     {% if content.sequel %}
-                    "Sequel, {{ content.sequel.title }} "
-                    {% endif %}
-                    {% if content.prequel %}
-                    "Prequel, {{ content.prequel.title }} "
-                    {% endif %}
-                    {% if not content.sequel and not content.prequel %}
+                    "{{ content.sequel[0].title }}"
+                    {% else %}
                     "None"
                     {% endif %}
+                >
 
+                <label for="sequel">Prequel</label>
+
+                <input type="text" id="prequel" name="prequel" value=
+                    {% if content.prequel %}
+                    "{{ content.prequel.title }}"
+                    {% else %}
+                    "None"
+                    {% endif %}
                 >
 
             </div>
