@@ -5,6 +5,7 @@ This is ONLY responsible for creating tables.
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql import func
+from sqlalchemy.orm import aliased
 from flask import Flask, url_for
 import random # For random pfp
 import yaml
@@ -170,6 +171,8 @@ class Content( db.Model ):
     
     status          = db.Column( db.SmallInteger() )
     ratings         = db.relationship('Rating', backref='content')
+    avg_score       = db.Column( db.FLOAT(8), default=0.0 )
+    ranking         = db.Column( db.Integer )
     genres          = db.relationship('Genre', secondary=content_genre, backref='contents')
     
     adaptation_id   = db.Column( db.Integer, db.ForeignKey("content.content_id"))
@@ -208,8 +211,26 @@ class Content( db.Model ):
         if found:
             found.sequel.remove( self )
 
+    def find_by_id(id):
+        return Content.query.filter( Content.content_id == id ).first()
+    
+    def find_by_name(name):
+        return Content.query.filter( Content.title.like( "%{}%".format( name ) ) ).first()
+    
+    def find_by_name_and_type(name, type):
+        return Content.query.filter((Content.title == name) & (Content.content_type == type)).first()
+    
+    def search(input):
+        if input.isnumeric():
+            return Content.find_by_id(input)
+        else:
+            return Content.find_by_name(input)
+
     def get_prequel(self):
         return self.prequel
+    
+    def has_sequel(self, sequel):
+        return sequel == self.sequel[0].title or sequel == self.sequel[0].content_id
             
     def remove_sequel(self):
         self.sequel = []
@@ -255,16 +276,22 @@ class Content( db.Model ):
     def get_rating( self, uid ):
         return Rating.query.filter_by(user_id=uid, content_id=self.content_id).first()
     
-    def avg_score( self ):
+    def update_avg_score( self ):
         score = Rating.query.with_entities(func.avg(Rating.content_rating).label('avg_rating')).filter(Rating.content_id == self.content_id).one_or_none().avg_rating
      
         if score:
-            return float("{:.2f}".format(score))
+            self.avg_score = float("{:.2f}".format(score))
         else:
-            return 0.0
+            self.avg_score = 0.0
+            
+        return self.avg_score
+        
+    def get_ranking(self):
+        ut = aliased(Content)
+        return db.session.query(func.count(ut.content_id)).filter(ut.avg_score > self.avg_score).one_or_none()[0] + 1
         
     def get_total_rating( self ):
-        return { 'score': self.avg_score(), 'count': self.rating_count() }
+        return { 'score': self.avg_score, 'count': self.rating_count(), 'ranking': self.get_ranking() }
     
     def rating_count( self ):
         return len(self.ratings)
@@ -280,9 +307,11 @@ class Content( db.Model ):
         
         if rating is None:
             self.add_rating( uid, score )
+            self.update_avg_score()
             return Rating.ADDED_RATING
         else:
             rating.content_rating = score
+            self.update_avg_score()
             return Rating.EDITTED_RATING
         
     def set_genre( self, *args ):

@@ -73,7 +73,7 @@
             style="object-fit:cover;">
         </div>
         <p class="col p-2 m-0 default-text-color">{{ content.title }} ({{ content.content_type }})</p>
-        <a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}"
+        <a href="{{ url_for('content', content_id=content.content_id, content_type=content.content_type) }}"
           class="btn stretched-link"></a>
       </div>
     </div>

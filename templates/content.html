@@ -121,7 +121,7 @@
 
         <!-- Edit rating modal -->
         <a class="btn nice" style="width: 12%; margin:auto; height:5%"
-            href="{{ url_for('set_rating_modal', content_title=content.title, content_type=content.content_type) }}"
+            href="{{ url_for('set_rating_modal', content_id=content.content_id, content_type=content.content_type) }}"
             role="button">
             Set Rating
         </a>
@@ -147,6 +147,10 @@
     <hr> 
     <!-- Status -->
     <div class="well default-text-color">
+        
+        <b>ID</b>: #{{ content.content_id }}
+        <br>
+        
         <b>Type</b>: {{ content.content_type }}
 
         {% if content.content_type == 'Anime' and content.season %}
@@ -160,16 +164,19 @@
         <br>
         <b>Score</b>: {{ rating.score }} ({{ rating.count }})
 
+        <br>
+        <b>Ranking</b>: #{{ rating.ranking }}
+
         {% if content.sequel %}
         <br>
         {% for seq in content.sequel %}
-        <b>Sequel</b>: <a href="{{ url_for('content', content_title=seq.title, content_type=seq.content_type) }}" style="text-decoration: none; color: #53518e;">{{ seq.title }}</a>
+        <b>Sequel</b>: <a href="{{ url_for('content', content_id=seq.content_id, content_type=seq.content_type) }}" style="text-decoration: none; color: #53518e;">{{ seq.title }}</a>
         {% endfor %}
         {% endif %}
 
         {% if content.prequel %}
         <br>
-        <b>Prequel</b>:  <a href="{{ url_for('content', content_title=content.prequel.title, content_type=content.prequel.content_type) }}" style="text-decoration: none; color: #53518e;">{{ content.prequel.title }}</a>
+        <b>Prequel</b>:  <a href="{{ url_for('content', content_id=content.prequel.content_id, content_type=content.prequel.content_type) }}" style="text-decoration: none; color: #53518e;">{{ content.prequel.title }}</a>
         {% endif %}
 
         
@@ -199,12 +206,12 @@
         <p class="sub-heading">Adaptation</p>
         <hr>
         {% for adpt in content.adaptation %}
-        <a class="btn adaptation" href="{{ url_for('content', content_title=adpt.title, content_type=adpt.content_type) }}" style="text-decoration: none">{{ adpt.title }}</a>
+        <a class="btn adaptation" href="{{ url_for('content', content_id=adpt.content_id, content_type=adpt.content_type) }}" style="text-decoration: none">{{ adpt.title }} ({{ adpt.content_type }})</a> 
         {% endfor %}
         {% elif content.content_type == 'Anime' and content.adapted_from %}
         <p class="sub-heading">Adapted From</p>
         <hr>
-        <a class="btn adaptation" href="{{ url_for('content', content_title=content.adapted_from.title, content_type=content.adapted_from.content_type) }}" style="text-decoration: none">{{ content.adapted_from.title }}</a>
+        <a class="btn adaptation" href="{{ url_for('content', content_id=content.adapted_from.content_id, content_type=content.adapted_from.content_type) }}" style="text-decoration: none">{{ content.adapted_from.title }} ({{ content.adapted_from.content_type }})</a>
         {% endif %}
     </div> <!-- End of Adaptation -->
 

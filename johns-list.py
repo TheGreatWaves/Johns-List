@@ -470,7 +470,8 @@ def create_content():
             return redirect('/create_content/')
             
         # existing content
-        found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        found = Content.find_by_name_and_type(content_title, content_type)
+        
         if found:
             flash('Content already exist', 'danger')
             return redirect('/create_content/')
@@ -485,18 +486,16 @@ def create_content():
         # Success message
         flash('Content added successfully', 'success')
    
-        return redirect(url_for('content', content_title=content_title, content_type=content_type))
+        return redirect(url_for('content', content_id=new_content.content_id, content_type=content_type))
     
     return render_template('create_content.html')
     
-@app.route('/content/<content_type>/<content_title>', methods=['GET','POST'])
-def content(content_type, content_title):
+@app.route('/content/<content_type>/<content_id>', methods=['GET','POST'])
+def content(content_type, content_id):
     if request.method == 'GET':
-        found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        found = Content.search(content_id)
         
         if found:
-            content_title = found.title
-            content_type = found.content_type
             rating = found.get_total_rating()
             has_content = 0
             
@@ -516,7 +515,7 @@ def content(content_type, content_title):
             return redirect('/')
     
     elif request.method == 'POST':
-        return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
+        return redirect(url_for('edit_content',content_type=content_type, content_id=content_id))
 
 # Search for content by title
     
@@ -558,36 +557,35 @@ def search_content_results(search_name, pagenum):
         return redirect(url_for('search_content_results', search_name=content_title, pagenum=1))
 
 
-@app.route('/content/<content_type>/<content_title>/edit', methods=['GET', 'POST'])
-def edit_content(content_type, content_title):
+@app.route('/content/<content_type>/<content_id>/edit', methods=['GET', 'POST'])
+def edit_content(content_type, content_id):
     if request.method == 'GET':
-        found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        found = Content.search(content_id)
         tags = None
         if found:
-            content_title = found.title
             content_type = found.content_type
             tags = ''.join([str(tag.name) + ', ' for tag in found.genres])[0: -2]
 
         if not logged_in():
-            session['last_page'] = url_for('edit_content',content_type=content_type, content_title=content_title)
+            session['last_page'] = url_for('edit_content',content_type=content_type, content_id=content_id)
             return redirect(url_for('signin'))
         
-        return render_template('edit_content.html',content=found, tags=tags)
+        return render_template('edit_content.html', content=found, tags=tags)
 
     elif request.method == 'POST':
-        content = Content.query.filter((Content.title==content_title) & (Content.content_type == content_type)).first()
+        content = Content.search(content_id)
         
-        cid = content.content_id
-        form = request.form
-        content_title = form['content_title']
-        content_img = form['content_img']
-        content_synopsis = form['content_synopsis']
-        content_status = form['content_status']
-        content_tags = form['tags']
-        adpt = form.get('adaptation')
-        season = form['season']
-        sequel = form.get('sequel')
-        prequel = form.get('prequel')
+        cid                 = content.content_id
+        form                = request.form
+        content_title       = form['content_title']
+        content_img         = form['content_img']
+        content_synopsis    = form['content_synopsis']
+        content_status      = form['content_status']
+        content_tags        = form['tags']
+        adpt                = form.get('adaptation')
+        season              = form['season']
+        sequel              = form.get('sequel')
+        prequel             = form.get('prequel')
         
         # Basic setup for sequel/prequel
         if (sequel.lower() == "none" or sequel == ""):
@@ -607,24 +605,25 @@ def edit_content(content_type, content_title):
         # Assign Sequel
         if sequel and sequel.lower() != "none":
             
-            newNotSameAsOld = not alreadyHasSequel or sequel != content.sequel[0].title
+            newNotSameAsOld = not alreadyHasSequel or not content.has_sequel(sequel)
             
             if newNotSameAsOld:
-                search_content = Content.query.filter( Content.title.like( "%{}%".format( sequel ) ) ).first()
+                
+                search_content = Content.search(sequel)
                 
                 if search_content is None:
                     flash( 'No sequel content found', 'danger' )
-                    return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
+                    return redirect( url_for( 'edit_content',content_type=content_type, content_id=content_id ) )
                
                 # Avoid circular dependency
                 if content.title == search_content.title:
                     flash( 'Invalid sequel entry, self referential error', 'danger' )
-                    return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
+                    return redirect( url_for( 'edit_content',content_type=content_type, content_id=content_id ) )
                
                 # Clashes with prequel
                 if alreadyHasPrequel and search_content.title == content.prequel.title:
                     flash( 'Sequel and prequel can not be the same', 'danger' )
-                    return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
+                    return redirect( url_for( 'edit_content',content_type=content_type, content_id=content_id ) )
                 
                 content.set_sequel( search_content )
         # Got blank or none
@@ -638,32 +637,26 @@ def edit_content(content_type, content_title):
             newNotSameAsOld = not alreadyHasPrequel or prequel != found.sequel[0].title
             
             if newNotSameAsOld:
-                search_content = Content.query.filter( Content.title.like( "%{}%".format( prequel ) ) ).first()
+                search_content = Content.search(prequel)
                 
                 if search_content is None:
                     flash( 'No prequel content found', 'danger' )
-                    return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
+                    return redirect( url_for( 'edit_content',content_type=content_type, content_id=content_id ) )
                     
                 # Avoid circular dependency
                 if content.title == search_content.title:
                     flash( 'Invalid prequel entry, self referential error', 'danger' )
-                    return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
+                    return redirect( url_for( 'edit_content',content_type=content_type, content_id=content_id ) )
                 
                 # Clashes with sequel
-                if alreadyHasSequel and search_content.title == content.sequal[0].title:
+                if alreadyHasSequel and content.has_sequel(prequel):
                     flash( 'Sequel and prequel can not be the same', 'danger' )
-                    return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
+                    return redirect( url_for( 'edit_content',content_type=content_type, content_id=content_id ) )
                 
                 content.set_prequel( search_content )
         # Got blank or none
         else: 
             content.remove_prequel()
-        
-        
-        
-        
-        
-        
         
         if season != "":
             content.season = season
@@ -673,13 +666,22 @@ def edit_content(content_type, content_title):
         
         if adpt:
             if adpt != "" and adpt.lower() != "none":
-                found = Content.query\
-                    .filter(Content.title.like("%{}%".format(adpt)))\
-                    .filter((Content.content_id != content.content_id) & (Content.content_type != content.content_type))\
-                    .first()
+                
+                found = None
+                
+                if adpt.isnumeric():
+                    found = Content.find_by_id(adpt)
+                else:
+                    found = Content.query\
+                        .filter(Content.title.like("%{}%".format(adpt)))\
+                        .filter((Content.content_id != content.content_id) & (Content.content_type != content.content_type))\
+                        .first()
                 
                 if found:
                     content.set_adaptation(found)
+                else:
+                    content.disconnect_source()
+                    flash('Adaptation not found', 'danger')
             elif adpt.lower() == "none":
                 content.disconnect_source()
         
@@ -698,7 +700,7 @@ def edit_content(content_type, content_title):
         # blank input
         if content_title == "":
             flash('Content title can not be empty', 'danger')
-            return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
+            return redirect(url_for('edit_content',content_type=content_type, content_id=content_id))
         
         if content_img == "":
             content_img = '/static/place_holder_img.png'
@@ -710,14 +712,13 @@ def edit_content(content_type, content_title):
             content_status = -1
             
         # existing content
-        found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        found = Content.find_by_name_and_type(content_title, content_type)
         if found:
             if found.title != content_title:
                 flash('This content has its own page already', 'danger')
-                return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
+                return redirect(url_for('edit_content',content_type=content_type, content_id=content_id))
             
         # Update content    
-        content = Content.query.filter(Content.content_id == cid).first()
         content.title = content_title
         content.synopsis = content_synopsis
         content.poster = content_img
@@ -727,19 +728,19 @@ def edit_content(content_type, content_title):
         # Success message
         flash('Content edited successfully', 'success')
    
-        return redirect(url_for('content', content_title=content_title, content_type=content_type))
+        return redirect(url_for('content', content_id=cid, content_type=content_type))
 
 
-@app.route('/content/<content_type>/<content_title>/me/add', methods=['GET'])
-def list_add_content(content_type, content_title):
+@app.route('/content/<content_type>/<content_id>/me/add', methods=['GET'])
+def list_add_content(content_type, content_id):
     
     # Handle login
     if not logged_in():
-        session['last_page'] = url_for('list_add_content', content_type=content_type, content_title=content_title)
+        session['last_page'] = url_for('list_add_content', content_type=content_type, content_id=content_id)
         return redirect(url_for('signin'))
     
     user = whoami()
-    content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+    content = Content.search( content_id )
     
     if content:
         if not user.lists[List.WATCH_LIST].has_content(content):
@@ -752,18 +753,18 @@ def list_add_content(content_type, content_title):
     else:
         flash(f'Action failed', 'danger')
         
-    return redirect(url_for('content', content_title=content_title, content_type=content_type))
+    return redirect(url_for('content', content_id=content_id, content_type=content_type))
 
-@app.route('/content/<content_type>/<content_title>/me/remove/', methods=['GET'])
-def list_remove_content(content_type, content_title):
+@app.route('/content/<content_type>/<content_id>/me/remove/', methods=['GET'])
+def list_remove_content(content_type, content_id):
     
     # Handle login
     if not logged_in():
-        session['last_page'] = url_for('list_add_content', content_type=content_type, content_title=content_title)
+        session['last_page'] = url_for('list_add_content', content_type=content_type, content_id=content_id)
         return redirect(url_for('signin'))
     
     user = whoami()
-    content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+    content = Content.search(content_id)
     
     if content:
         if user.lists[List.COMPLETED_LIST].has_content(content):
@@ -780,18 +781,18 @@ def list_remove_content(content_type, content_title):
     else:
         flash(f'Action failed', 'danger')
         
-    return redirect(url_for('content', content_title=content_title, content_type=content_type))
+    return redirect(url_for('content', content_id=content.id, content_type=content_type))
 
-@app.route('/content/<content_type>/<content_title>/<group_id>/add', methods=['GET'])
-def group_list_add_content(content_type, content_title, group_id):
+@app.route('/content/<content_type>/<content_id>/<group_id>/add', methods=['GET'])
+def group_list_add_content(content_type, content_id, group_id):
     
     # Handle login
     if not logged_in():
-        session['last_page'] = url_for('group_list_add_content', content_type=content_type, content_title=content_title, group_id=group_id)
+        session['last_page'] = url_for('group_list_add_content', content_type=content_type, content_id=content_id, group_id=group_id)
         return redirect(url_for('signin'))
     
     group = Group.query.filter_by(group_id = group_id).first()
-    content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+    content = Content.search(content_id)
     
     if content:
         if not group.lists[List.WATCH_LIST].has_content(content):
@@ -804,7 +805,7 @@ def group_list_add_content(content_type, content_title, group_id):
     else:
         flash(f'Action failed', 'danger')
         
-    return redirect(url_for('content', content_title=content_title, content_type=content_type))
+    return redirect(url_for('content', content_id=content_id, content_type=content_type))
     
 @app.route('/<owner>/<owner_name>/<list_name>/', methods=['GET', 'POST'])
 def list(owner, owner_name, list_name):
@@ -835,7 +836,13 @@ def list(owner, owner_name, list_name):
         user = whoami()
         
         # For list editting permissions (either owner or member of group)
-        is_owner = is_user(owner_name) or ((list_owner.has_member(whoami().user_id) != None) if user is not None else False) 
+        
+        is_owner = False
+        
+        if list.owner_class == 'u':
+            is_owner = is_user(owner_name)
+        elif list.owner_class == 'g':
+            is_owner = ((list_owner.has_member(whoami_id()) != None) if user is not None else False) 
     
         return render_template('list.html', owner_name=name, list=list, is_owner=is_owner)
     
@@ -867,17 +874,17 @@ def list(owner, owner_name, list_name):
         return redirect(url_for('list', owner=owner, owner_name=owner_name, list_name=list_name))
     return redirect(url_for('list', owner=owner, owner_name=owner_name, list_name=list_name))
     
-@app.route("/content/<content_type>/<content_title>/modal/", methods=['GET', 'POST'])
-def list_add_modal(content_type, content_title):
+@app.route("/content/<content_type>/<content_id>/modal/", methods=['GET', 'POST'])
+def list_add_modal(content_type, content_id):
     if request.method == 'GET':
         
         
         # Handle login
         if not logged_in():
-            session['last_page'] = url_for('list_add_modal', content_type=content_type, content_title=content_title)
+            session['last_page'] = url_for('list_add_modal', content_type=content_type, content_id=content_id)
             return redirect(url_for('signin'))
         
-        found = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        found = Content.search(content_id)
         
         if found:
             
@@ -893,31 +900,31 @@ def list_add_modal(content_type, content_title):
             return redirect('/')
     
     elif request.method == 'POST':
-        return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
+        return redirect(url_for('edit_content',content_type=content_type, content_id=content_id))
 
-@app.route('/content/<content_type>/<content_title>/rate', methods=['GET','POST'])
-def rate_content(content_type, content_title):
+@app.route('/content/<content_type>/<content_id>/rate', methods=['GET','POST'])
+def rate_content(content_type, content_id):
     if request.method == 'GET':
         # Handle login
         if not logged_in():
-            session['last_page'] = url_for('content', content_type=content_type, content_title=content_title)
+            session['last_page'] = url_for('content', content_type=content_type, content_id=content_id)
             return redirect(url_for('signin'))
         
-        content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        content = Content.search( content_id )
         if content:
             rating = content.get_total_rating()
             return render_template('set_rating_modal.html',content=content, rating=rating)
         else:
-            return render_template('content', content_type=content_type, content_title=content_title)
+            return render_template('content', content_type=content_type, content_id=content_id)
         
     elif request.method == 'POST':  
         
         if not logged_in():
-            session['last_page'] = url_for('content', content_type=content_type, content_title=content_title)
+            session['last_page'] = url_for('content', content_type=content_type, content_id=content_id)
             return redirect(url_for('signin'))
 
         user = whoami()
-        content = Content.query.filter((Content.title == content_title) & (Content.content_type == content_type)).first()
+        content = Content.search( content_id )
         rating = request.form["slider"]
         
         if content:
@@ -929,18 +936,18 @@ def rate_content(content_type, content_title):
                 flash('Rating editted', 'success')
             
             db.session.commit()
-            return redirect( url_for('content', content_type=content_type, content_title=content_title))
+            return redirect( url_for('content', content_type=content_type, content_id=content_id))
                 
         flash('no content found', 'danger')
         return redirect('/')
 
-@app.route("/content/<content_type>/<content_title>/rate_modal/", methods=['GET', 'POST'])
-def set_rating_modal(content_type, content_title):
+@app.route("/content/<content_type>/<content_id>/rate_modal/", methods=['GET', 'POST'])
+def set_rating_modal(content_type, content_id):
     if request.method == 'GET':
-        return redirect(url_for('rate_content',content_type=content_type, content_title=content_title))
+        return redirect(url_for('rate_content',content_type=content_type, content_id=content_id))
     
     if request.method == 'POST':
-        return redirect(url_for('rate_content',content_type=content_type, content_title=content_title))
+        return redirect(url_for('rate_content',content_type=content_type, content_id=content_id))
 
 # Search Group/Users
 @app.route('/search/', methods=['GET', 'POST'])

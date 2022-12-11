@@ -62,7 +62,7 @@
                 <li class="list-group-item" style="background-color: #53518e; margin-bottom: 5px;">
                     <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
                         <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #0E0E0E;"
-                            href="{{ url_for('group_list_add_content', content_type=content.content_type, content_title=content.title, group_id=group.group_id) }}" role="button">{{ group.name }}</a>
+                            href="{{ url_for('group_list_add_content', content_type=content.content_type, content_id=content.content_id, group_id=group.group_id) }}" role="button">{{ group.name }}</a>
                     </div>
                 </li>
                 {% endfor %}
@@ -77,7 +77,7 @@
                 {% endif %}
             </div>
             <div class="modal-footer">
-                <a href="{{ url_for('content', content_title=content.title, content_type=content.content_type) }}"
+                <a href="{{ url_for('content', content_id=content.content_id, content_type=content.content_type) }}"
                     class="btn cancel">Cancel</a>
             </div>
         </div>
