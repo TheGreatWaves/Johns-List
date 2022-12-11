@@ -122,7 +122,24 @@ def add_contents():
     oyasumi         = add_content(contents_to_add, "Oyasumi Punpun", "manga")
     horimiya        = add_content(contents_to_add, "Horimiya", "manga")
     jjk_manga       = add_content(contents_to_add, "Jujutsu Kaisen", "manga")
+    rezero2         = add_content(contents_to_add, "Re:Zero kara Hajimeru Isekai Seikatsu 2nd Season", "anime")
     
+    
+    rezero2.poster = "https://cdn.myanimelist.net/images/anime/1444/108005.jpg"
+    rezero2.synopsis = "A reunion that was supposed to spell the arrival of peaceful times is quickly shattered when Subaru"\
+    " Natsuki and Emilia return to Irlam village. Witnessing the devastation left behind by the calamities known as Sin Archbishops,"\
+    " Subaru sinks into the depths of despair as his ability to redo proves futile."
+    rezero2.set_genre(
+        GENRE_ACTION,
+        GENRE_ADVENTURE,
+        GENRE_FANTASY,
+        GENRE_HORROR,
+        GENRE_ISEKAI,
+        GENRE_MAGIC,
+        GENRE_PSYCHOLOGICAL,
+        GENRE_TIME_TRAVEL,
+        GENRE_TRAGIC
+    )
     
     jjk_manga.poster = "https://upload.wikimedia.org/wikipedia/en/4/46/Jujutsu_kaisen.jpg"
     jjk_manga.synopsis = "For some strange reason, Yuji Itadori, despite his insane athleticism "\
@@ -286,6 +303,7 @@ def add_contents():
         GENRE_ACTION,
         GENRE_TIME_TRAVEL
     )
+    rezero.set_sequel(rezero2)
     
     for content in contents_to_add:
         db.session.add(content)

@@ -166,11 +166,18 @@
                 {% endif %}
 
                 <label for="sequel">Sequel / Prequel</label>
-                {% if content.sequel %}
-                <input type="text" id="sequel" name="sequel" value="{{ content.sequel.title }}">
-                {% else %}
-                <input type="text" id="sequel" name="sequel" value="None">
-                {% endif %}
+                <input type="text" id="sequel" name="sequel" value=
+                    {% if content.sequel %}
+                    "Sequel, {{ content.sequel.title }} "
+                    {% endif %}
+                    {% if content.prequel %}
+                    "Prequel, {{ content.prequel.title }} "
+                    {% endif %}
+                    {% if not content.sequel and not content.prequel %}
+                    "None"
+                    {% endif %}
+
+                >
 
             </div>
 

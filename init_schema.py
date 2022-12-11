@@ -225,7 +225,7 @@ class Content( db.Model ):
                 self.adaptation.delete(other)
     
     def disconnect_source(self):
-        if self.content_type == "Anime":
+        if self.content_type == "Anime" and self.adapted_from:
             self.adapted_from.adaptation.remove(self)
        
         

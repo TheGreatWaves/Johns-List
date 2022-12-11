@@ -395,8 +395,8 @@ def edit_group(group_name):
         group_info = form['group_info']
 
         if group_name  == "":
-            flash('Group name cannot be empty', 'danger')
-            return redirect(url_for('edit_group',group=group, members=members, is_member=is_member, is_owner=is_owner))
+            flash( 'Group name cannot be empty', 'danger' )
+            return redirect( url_for( 'edit_group', group_name=group.name ) )
             
         if group_img == "":
             group_img = url_for('static', filename='place_holder_img.png')
@@ -405,7 +405,7 @@ def edit_group(group_name):
         existing_name = Group.query.filter(Group.name == group_name).first()
         if existing_name and existing_name.name != group.name:
             flash('This name has already been taken', 'danger')
-            return redirect(url_for('edit_group', group=group, members=members, is_member=is_member, is_owner=is_owner))
+            return redirect(url_for('edit_group', group_name=group.name ))
                 
         # Update group    
    
@@ -576,6 +576,7 @@ def edit_content(content_type, content_title):
 
     elif request.method == 'POST':
         content = Content.query.filter((Content.title==content_title) & (Content.content_type == content_type)).first()
+        
         cid = content.content_id
         form = request.form
         content_title = form['content_title']
@@ -587,13 +588,14 @@ def edit_content(content_type, content_title):
         season = form['season']
         sequel = form['sequel']
         
+        # Assign Sequel
         if sequel != "" and sequel.lower() != "none":
             
             l = sequel.split(' ')
             
-            if len(l) <= 1:
-                flash('Expected two arguments! <sequel/prequel> <content title>', 'danger')
-                return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
+            if len( l ) <= 1:
+                flash( 'Expected two arguments! <sequel/prequel> <content title>', 'danger' )
+                return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
             
             split = sequel.split(', ')
             
@@ -603,30 +605,31 @@ def edit_content(content_type, content_title):
                 
                 if title.lower() == "none":
                     if type.lower() == "prequel":
-                        found = Content.query.filter(Content.content_id == content.sequel_id).first()
+                        found = Content.query.filter( Content.content_id == content.sequel_id ).first()
                         if found:
-                            found.sequel.remove(content)
+                            found.sequel.remove( content )
                     elif type.lower() == "sequel":
                         content.sequel = []
                     continue
                 
-                search_content = Content.query.filter(Content.title.like("%{}%".format(title))).first()
+                search_content = Content.query.filter( Content.title.like( "%{}%".format( title ) ) ).first()
                 
                 if search_content is None:
-                    flash('No sequel/prequel content found', 'danger')
-                    return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
+                    flash( 'No sequel/prequel content found', 'danger' )
+                    return redirect( url_for( 'edit_content',content_type=content_type, content_title=content_title ) )
                 
-                if type.lower() == "prequel":
-                    content.set_prequel(search_content)
-                elif type.lower() == "sequel":
-                    content.set_sequel(search_content)
+                match( type.lower() ):
+                    case "prequel":
+                        content.set_prequel( search_content )
+                    case "sequel":
+                        content.set_sequel( search_content )
                 
         elif sequel.lower() == "none":
             content.sequel = []
             
-            found = Content.query.filter(Content.content_id == content.sequel_id).first()
+            found = Content.query.filter( Content.content_id == content.sequel_id ).first()
             if found:
-                found.sequel.remove(content)
+                found.sequel.remove( content )
             
         
         if season != "":
@@ -665,7 +668,7 @@ def edit_content(content_type, content_title):
             return redirect(url_for('edit_content',content_type=content_type, content_title=content_title))
         
         if content_img == "":
-            content_img = '/static/place_holder_img.png';
+            content_img = '/static/place_holder_img.png'
 
         if content_synopsis == "":
                 content_synopsis = 'No sypnosis has been provided.'
