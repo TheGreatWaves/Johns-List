@@ -109,7 +109,7 @@ class SearchResult:
 # Index
 @app.route("/")
 def index():
-    contents = Content.query.order_by(func.random()).limit(6)
+    contents = Content.query.filter(Content.poster != None).order_by(func.random()).limit(6)
     return render_template("index.html", contents = contents)
 
 # About page
@@ -635,16 +635,17 @@ def edit_content(content_type, content_title):
             if season.lower() == "none":
                 content.season = None
         
-        if adpt != "" and adpt.lower() != "none":
-            found = Content.query\
-                .filter(Content.title.like("%{}%".format(adpt)))\
-                .filter((Content.content_id != content.content_id) & (Content.content_type != content.content_type))\
-                .first()
-            
-            if found:
-                content.set_adaptation(found)
-        elif adpt.lower() == "none":
-            content.disconnect_source()
+        if adpt:
+            if adpt != "" and adpt.lower() != "none":
+                found = Content.query\
+                    .filter(Content.title.like("%{}%".format(adpt)))\
+                    .filter((Content.content_id != content.content_id) & (Content.content_type != content.content_type))\
+                    .first()
+                
+                if found:
+                    content.set_adaptation(found)
+            elif adpt.lower() == "none":
+                content.disconnect_source()
         
         if content_tags != "":
             tags = content_tags.split(", ")

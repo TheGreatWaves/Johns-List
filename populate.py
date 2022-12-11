@@ -205,7 +205,7 @@ def add_contents():
         GENRE_SOL
     )
     
-    dandadan.poster = "https://mangaplus.shueisha.co.jp/drm/title/100171/title_thumbnail_portrait_list/181732.jpg?key=bc1192d36fb8b5670168d83589723495&duration=86400"
+    dandadan.poster = "https://mangaplus.shueisha.co.jp/drm/title/100171/title_thumbnail_portrait_list/181732.jpg?key=086da91421c48084d4c5ce31f259b2e4"
     dandadan.synopsis = "Ghosts, monsters, aliens, teen romance, battles...and the kitchen sink! This series has it all! Takakura, an occult maniac who doesn't "\
         "believe in ghosts, and Ayase, a girl who doesn't believe in aliens, try to overcome their differences when they encounter the paranormal! This manga is out of this world!"
     dandadan.set_genre(
