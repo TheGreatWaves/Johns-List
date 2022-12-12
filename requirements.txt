@@ -3,7 +3,6 @@
 gunicorn
 flask
 flask_sqlalchemy
-sqlalchemy.sql.expression
 random
-werkzeug.security
+werkzeug
 yaml
