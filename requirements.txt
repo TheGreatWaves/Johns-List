@@ -5,3 +5,4 @@ flask
 flask-sqlalchemy
 werkzeug
 pyyaml
+MYSQLdb
