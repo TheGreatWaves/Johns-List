@@ -2,7 +2,6 @@
 
 gunicorn
 flask
-flask_sqlalchemy
-random
+flask-sqlalchemy
 werkzeug
 yaml
