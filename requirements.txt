@@ -4,4 +4,4 @@ gunicorn
 flask
 flask-sqlalchemy
 werkzeug
-yaml
+pyyaml
