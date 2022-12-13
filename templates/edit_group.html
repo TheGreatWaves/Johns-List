@@ -135,11 +135,11 @@
                     <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #1C1C1C;"
                         href="{{ url_for('user', username=member.username) }}" role="button">{{ member.username}}</a>
                 </div>
-                {% if is_owner %}
+                <!-- {% if is_owner %}
                 <button class="btn danger" type="button" name="remove_member" value="{{ member.user_id }}">
                     <i class="bi bi-x "></i>
                 </button>
-                {% endif %}
+                {% endif %} -->
             </li>
             {% endfor %}
             {% else %}

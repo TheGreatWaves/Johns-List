@@ -165,9 +165,6 @@
                     <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #1C1C1C;"
                         href="{{ url_for('group', group_name=group.name) }}" role="button">{{ group.name }}</a>
                 </div>
-                <button class="btn danger" type="button" name="delete_group" value="{{ group }}">
-                    <i class="bi bi-x "></i>
-                </button>
             </li>
             {% endfor %}
             {% else %}
