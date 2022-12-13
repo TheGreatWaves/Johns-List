@@ -112,7 +112,7 @@ The content page contains
 - status (completed, ongoing, or unspecified if no user have edited)
 - score by the users, and the number of users who scored
 - ranking of the content based on the score.
-- prequel / sequel
+- prequel / sequel / adaptation
 - tags
 
 
@@ -216,5 +216,5 @@ populate.py
 Link to Github repository:
 https://github.com/TheGreatWaves/Johns-List
 
-
-Crate a report on GitHub* (contain design diagrams, UI, SQL script to populate schema and populate sample data), link to GitHub, link to videos) → [Post on Canvas] 
+Link to video:
+https://www.youtube.com/watch?v=Xt_cYK-hVhg
