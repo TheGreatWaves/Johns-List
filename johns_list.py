@@ -4,10 +4,11 @@ Add and implement entry points here (We could move them out later if desired.)
 """
 
 # Flask
-from flask import Flask, render_template, request, redirect, flash, session, url_for
+from flask import Flask, render_template, request, redirect, flash, session, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql.expression import func
 import random
+import logging
 
 # For hashing
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -91,6 +92,7 @@ class SearchResult:
 /signin/
 /signout/
 /user/<username>
+/user/<username>/edit
 /create_group/
 /group/<group_name>/join
 /group/<group_name>/leave
@@ -254,6 +256,97 @@ def user(username):
                     .all()
 
     is_owner = whoami_username() == user.username
+
+    return render_template('user.html', user=user, groups=user_groups, is_owner=is_owner)
+
+# Edit user profile page
+@app.route('/user/<username>/edit', methods=['GET', 'POST'])
+def edit_user(username):
+
+    # Find user using username
+    user = User.query.filter_by(username=username).first()
+
+    if request.method == 'GET':
+
+        # User not found
+        if user is None:
+            flash("User not found", 'danger')
+            
+            if username == whoami_username():
+                session.clear()
+            
+            return redirect('/')
+
+        is_owner = whoami_username() == user.username
+
+        # Get Groups owned by the user
+        groups_owned = Group.query.filter_by(owner_id=user.user_id)
+        
+        user.get_all_groups()\
+                        .filter_by()\
+                        .order_by(Group.name)\
+                        .all()
+        
+        if not is_owner:
+            flash("You don't have permisssion to edit", 'danger')
+            return redirect(url_for( 'user', username=username))
+        else:
+            return render_template('edit_user.html', user=user, owned_groups=groups_owned)
+        
+    elif request.method == 'POST':
+
+        form = request.form
+        
+        new_username = form['username']
+        new_user_pfp = form['user_pfp']
+        new_user_bio = form['user_bio'] # + "\n" + user.password + "\n" + generate_password_hash('123')
+        old_password = form['old_password']
+        new_password = form['new_password']
+        confirm_password = form['confirm_password']
+
+            
+        if new_user_pfp == "":
+            new_user_pfp = url_for('static', filename='place_holder_img.png')
+        
+        # existing username
+        existing_name = User.query.filter(User.name == username).first()
+
+        error = False
+
+        if new_username  == "":
+            flash( 'Username cannot be empty', 'danger' )
+            error = True
+        elif existing_name and existing_name.name != username:
+            flash('This name has already been taken', 'danger')
+            error = True
+        
+        if (old_password or new_password or confirm_password):
+            if not (old_password and new_password and confirm_password):
+                flash('Missing password', 'danger')
+                error = True
+
+            if old_password and not check_password_hash(user.password, old_password):
+                flash('Old password is incorrect', 'danger')
+                error = True
+
+            if new_password != "" and confirm_password != "" and new_password != confirm_password:
+                flash('Password does not match', 'danger')
+                error = True
+        
+        if error:
+            return redirect(url_for( 'edit_user', username=username))
+        
+        # Update user info
+        user.name = new_username
+        user.profile_pic_url = new_user_pfp
+        user.bio = new_user_bio
+        if new_password:
+            user.password = generate_password_hash(new_password)
+        db.session.commit()
+            
+        # Success message
+        flash('User Info edited successfully', 'success')
+        return redirect(url_for('user', username=username))
 
     return render_template('user.html', user=user, groups=user_groups, is_owner=is_owner)
 

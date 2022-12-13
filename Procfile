@@ -1,1 +1,1 @@
-web: gunicorn johns-list:app  
+web: gunicorn johns_list:app  
