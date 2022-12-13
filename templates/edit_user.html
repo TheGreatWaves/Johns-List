@@ -15,6 +15,24 @@
         font-weight: bold;
     }
 
+    input[type=text],
+    select,
+    textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        color: #AAAAAA;
+        background-color: #131313;
+        border-radius: 4px;
+        resize: vertical;
+    }
+
+    label {
+        padding: 12px 12px 12px 0;
+        display: inline-block;
+        color: #AAAAAA;
+    }
+
     /* Center image  */
     .center {
         display: block;
@@ -34,9 +52,9 @@
 
     a.search,
     a.create,
-    a.edit,
+    a.save,
     a.nice,
-    button.edit {
+    button.default {
         background-color: transparent;
         color: #AAAAAA;
         border-color: #AAAAAA;
@@ -47,7 +65,8 @@
     a.create:hover,
     a.group:hover,
     a.nice:hover,
-    a.edit:hover {
+    a.save:hover,
+    button.default:hover {
         background-color: #53518e !important;
         color: #0E0E0E !important;
     }
@@ -57,26 +76,23 @@
 {% endblock %}
 
 {% block title %}
-<title>{{ user.username }}</title>
+<title>{{ user.username }} - Edit</title>
 {% endblock %}
 
 {% block page_title %}
-<div class="col">
-    <div class="row">
-        <div class="col">
-            <h2>{{ user.username }}</h2>
-        </div>
-        
-        {% if is_owner %}
-        
-        <!-- TODO: ROUTE THIS -->
-            <div class="col-md-1 text-end" style="margin: auto;">
-                <a class="btn edit" href="{{ url_for('edit_user', username=user.username) }}" role="button">Edit</a>
+<form method="POST">
+    <div class="col">
+        <div class="row">
+            <div class="col">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" value="{{user.username}}">
             </div>
-
-        {% endif %}
+            <div class="col-md-2 text-end" style="margin: auto;">
+                <button class="btn default" style="margin-left: 10px; margin-top: 50px; width: 50%;" type="submit">Save</button>
+                <!-- <a class="btn save" href="{{ url_for('user', username=user.username) }}" role="button">Save</a> -->
+            </div>
+        </div>
     </div>
-</div>
 {% endblock %}
 
 {% block content %}
@@ -85,19 +101,32 @@
 
     <!-- Profile picture -->
     <div class="well">
-        <img src="{{ user.profile_pic_url }}" class="center rounded" alt="poster" style="width: 100%;">
+        <label for="user_pfp">User Profile URL</label>
+        <input type="text" id="user_pfp" name="user_pfp" value="{{user.profile_pic_url}}">
+        <img src="{{ user.profile_pic_url }}" class="center rounded" alt="pfp" style="width: 100%;">
     </div>
 
     <hr>
 
     <div class="row">
         <div class="col text-end">
-            <a class="btn nice" style="width: 100%; height: 25px; line-height: 10px; margin-bottom: 5px;" href="{{ url_for('list', owner='user', owner_name=user.username, list_name=user.lists[0].name) }}" role="button">Watch List</a>
+            <input type="old_password" class="form-control" id="old_password" name="old_password" placeholder="Old Password" size="30" />
         </div>
     </div>
+
+    <br>
+
+    <div class="row">
+        <div class="col text-end">
+            <input type="new_password" class="form-control" id="new_password" name="new_password" placeholder="New Password" size="30" />
+        </div>
+    </div>
+
+    <br>
+
     <div class="row">
         <div class="col text-start">
-            <a class="btn nice" style="width: 100%; height: 25px; line-height: 10px;" href="{{ url_for('list', owner='user', owner_name=user.username, list_name=user.lists[1].name) }}" role="button">Completed List</a>
+            <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm Password" size="30" />
         </div>
     </div>
 </div>
@@ -108,44 +137,48 @@
         <div class="col-md-8 well" style="margin-top: 1em">
             <p class="sub-heading">About me</p>
             <hr>
-            <p style="white-space: pre-line">{{ user.bio }}</p>
+            <div class="well">
+                <textarea id="user_bio" name="user_bio" style="height:500px">{{user.bio}}</textarea>
+            </div>
         </div>
         <div class="col-md-4 well" style="margin-top: 1em">
 
             <div class="row" style="height: 24px">
-                <div class="col-md-3">
-                    <p class="sub-heading">Groups</p>
+                <div class="col-md-6">
+                    <p class="sub-heading">Groups Created</p>
                 </div>
 
-                {% if is_owner %}
                 <div class="col text-end">
                     <a class="btn create" href="{{ url_for('create_group') }}" role="button"
                         style="vertical-align: top; height: 30px;">Create</a>
                     <a class="btn search" href="{{ url_for('search') }}" role="button"
                         style="vertical-align: top; height: 30px;">Search</a>
                 </div>
-                {% endif %}
             </div>
 
             <hr>
 
-            {% if groups %}
-            {% for group in groups %}
+            {% if owned_groups %}
+            {% for group in owned_groups %}
             <li class="list-group-item" style="background-color: #53518e; margin-bottom: 5px;">
                 <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
                     <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #1C1C1C;"
                         href="{{ url_for('group', group_name=group.name) }}" role="button">{{ group.name }}</a>
                 </div>
+                <button class="btn danger" type="button" name="delete_group" value="{{ group }}">
+                    <i class="bi bi-x "></i>
+                </button>
             </li>
             {% endfor %}
             {% else %}
             <li class="list-group-item" style="background-color: #53518e">
                 <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
-                    <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #1C1C1C">Not currently in any group.</a>
+                    <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #1C1C1C">No group created.</a>
                 </div>
             </li>
             {% endif %}
         </div>
     </div>
 </div>
+</form>
 {% endblock %}

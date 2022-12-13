@@ -52,12 +52,14 @@
         border-color: #AAAAAA;
         line-height: 15px;
     }
-
+    
+    a.group:hover
     a.default:hover,
     button.default:hover {
         background-color: #53518e !important; 
         color: #0E0E0E !important;
     }
+
 </style>
 {% endblock %}
 
@@ -131,8 +133,7 @@
             <li class="list-group-item" style="background-color: #53518e; margin-bottom: 5px;">
                 <div class="shadow rounded" style="width: 100%; display: block; background-color: #8885DA">
                     <a class="btn group" style="width: 100%; color: #AAAAAA; background-color: #1C1C1C;"
-                        href="{{ url_for('user', username=member.username) }}" role="button">{{ member.username
-                        }}</a>
+                        href="{{ url_for('user', username=member.username) }}" role="button">{{ member.username}}</a>
                 </div>
                 {% if is_owner %}
                 <button class="btn danger" type="button" name="remove_member" value="{{ member.user_id }}">
