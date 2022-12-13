@@ -170,8 +170,6 @@ class Content( db.Model ):
     
     status          = db.Column( db.SmallInteger() )
     ratings         = db.relationship('Rating', backref='content')
-    avg_score       = db.Column( db.FLOAT(8), default=0.0 )
-    ranking         = db.Column( db.Integer )
     genres          = db.relationship('Genre', secondary=content_genre, backref='contents')
     
     adaptation_id   = db.Column( db.Integer, db.ForeignKey("content.content_id"))
@@ -275,6 +273,11 @@ class Content( db.Model ):
             return len(self.ratings)
         return 0
 
+    @hybrid_property
+    def ranking( self ):
+        ut = aliased(Content)
+        return db.session.query(func.count(ut.content_id)).filter(ut.rating_score > self.rating_score).one_or_none()[0] + 1
+
     @number_of_ratings.expression
     def number_of_ratings( cls ):
         return (select([func.count(Rating.rat_id)])
@@ -282,7 +285,8 @@ class Content( db.Model ):
 
     @hybrid_property
     def rating_avg( self ):
-        return Rating.query.with_entities(func.avg(Rating.content_rating).label('avg_rating')).filter(Rating.content_id == self.content_id).one_or_none().avg_rating
+        avg = Rating.query.with_entities(func.avg(Rating.content_rating).label('avg_rating')).filter(Rating.content_id == self.content_id).one_or_none().avg_rating
+        return avg if avg else 0.00
      
     @rating_avg.expression
     def rating_avg( cls ):
@@ -309,22 +313,8 @@ class Content( db.Model ):
     def get_rating( self, uid ):
         return Rating.query.filter_by(user_id=uid, content_id=self.content_id).first()
     
-    def update_avg_score( self ):
-        score = Rating.query.with_entities(func.avg(Rating.content_rating).label('avg_rating')).filter(Rating.content_id == self.content_id).one_or_none().avg_rating
-     
-        if score:
-            self.avg_score = float("{:.2f}".format(score))
-        else:
-            self.avg_score = 0.0
-            
-        return self.avg_score
-        
-    def get_ranking(self):
-        ut = aliased(Content)
-        return db.session.query(func.count(ut.content_id)).filter(ut.rating_score > self.rating_score).one_or_none()[0] + 1
-        
     def get_total_rating( self ):
-        return { 'score': self.avg_score, 'count': self.rating_count(), 'ranking': self.get_ranking() }
+        return { 'score': '{0:.2f}'.format(self.rating_avg), 'count': self.rating_count(), 'ranking': self.ranking }
     
     def rating_count( self ):
         return len(self.ratings)
@@ -340,11 +330,9 @@ class Content( db.Model ):
         
         if rating is None:
             self.add_rating( uid, score )
-            self.update_avg_score()
             return Rating.ADDED_RATING
         else:
             rating.content_rating = score
-            self.update_avg_score()
             return Rating.EDITTED_RATING
         
     def set_genre( self, *args ):
