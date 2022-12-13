@@ -9,6 +9,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql.expression import func
 import random
 
+app = Flask(__name__)
+
 # For hashing
 from werkzeug.security import generate_password_hash, check_password_hash
 
