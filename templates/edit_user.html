@@ -85,7 +85,7 @@
         <div class="row">
             <div class="col">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" value="{{user.username}}">
+                <input type="text" id="username" name="username" value="{{ user.username }}">
             </div>
             <div class="col-md-2 text-end" style="margin: auto;">
                 <button class="btn default" style="margin-left: 10px; margin-top: 50px; width: 50%;" type="submit">Save</button>
@@ -110,7 +110,7 @@
 
     <div class="row">
         <div class="col text-end">
-            <input type="old_password" class="form-control" id="old_password" name="old_password" placeholder="Old Password" size="30" />
+            <input type="password" class="form-control" id="old_password" name="old_password" placeholder="Old Password" size="30" />
         </div>
     </div>
 
@@ -118,7 +118,7 @@
 
     <div class="row">
         <div class="col text-end">
-            <input type="new_password" class="form-control" id="new_password" name="new_password" placeholder="New Password" size="30" />
+            <input type="password" class="form-control" id="new_password" name="new_password" placeholder="New Password" size="30" />
         </div>
     </div>
 
@@ -146,13 +146,6 @@
             <div class="row" style="height: 24px">
                 <div class="col-md-6">
                     <p class="sub-heading">Groups Created</p>
-                </div>
-
-                <div class="col text-end">
-                    <a class="btn create" href="{{ url_for('create_group') }}" role="button"
-                        style="vertical-align: top; height: 30px;">Create</a>
-                    <a class="btn search" href="{{ url_for('search') }}" role="button"
-                        style="vertical-align: top; height: 30px;">Search</a>
                 </div>
             </div>
 

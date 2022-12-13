@@ -81,7 +81,7 @@ def add_groups():
     big_group = groups_to_add[0]
     
     for user in users:
-        if user.name != 'john':
+        if user.username != 'john':
             big_group.add_member(user)
         
     # ================== Lover group ================== #
@@ -222,7 +222,7 @@ def add_contents():
         GENRE_SOL
     )
     
-    dandadan.poster = "https://mangaplus.shueisha.co.jp/drm/title/100171/title_thumbnail_portrait_list/181732.jpg?key=086da91421c48084d4c5ce31f259b2e4"
+    dandadan.poster = "http://cdn.shopify.com/s/files/1/0274/1056/3133/products/9782820344977_cg.jpg?v=1665070377"
     dandadan.synopsis = "Ghosts, monsters, aliens, teen romance, battles...and the kitchen sink! This series has it all! Takakura, an occult maniac who doesn't "\
         "believe in ghosts, and Ayase, a girl who doesn't believe in aliens, try to overcome their differences when they encounter the paranormal! This manga is out of this world!"
     dandadan.set_genre(

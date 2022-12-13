@@ -4,7 +4,7 @@ This is ONLY responsible for creating tables.
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, select, case
 from sqlalchemy.orm import aliased
 from flask import Flask, url_for
 import random # For random pfp
@@ -54,7 +54,6 @@ default_pfp = \
 class User( db.Model ):
     user_id         = db.Column('user_id', db.Integer, primary_key = True, autoincrement=True)
     user_class      = db.Column('user_class', db.CHAR(1), primary_key = True, default='u')
-    name            = db.Column(db.String(20), default='None')
     email           = db.Column(db.String(255), unique=True, nullable=False)
     username        = db.Column(db.String(20), unique=True, nullable=False)
     password        = db.Column(db.String(255))
@@ -270,6 +269,40 @@ class Content( db.Model ):
     def get_rating_count( self ):
         return len(self.ratings)
 
+    @hybrid_property
+    def number_of_ratings( self ):
+        if self.ratings:
+            return len(self.ratings)
+        return 0
+
+    @number_of_ratings.expression
+    def number_of_ratings( cls ):
+        return (select([func.count(Rating.rat_id)])
+                .where(Rating.content_id == cls.content_id))
+
+    @hybrid_property
+    def rating_avg( self ):
+        return Rating.query.with_entities(func.avg(Rating.content_rating).label('avg_rating')).filter(Rating.content_id == self.content_id).one_or_none().avg_rating
+     
+    @rating_avg.expression
+    def rating_avg( cls ):
+        return db.session.query(func.avg(Rating.content_rating)).filter(Rating.content_id == cls.content_id).as_scalar()
+
+    @hybrid_property
+    def rating_score( self ):
+        if self.rating_avg is None or self.number_of_ratings is None:
+            return 0
+        return self.rating_avg * self.number_of_ratings
+     
+    @rating_score.expression
+    def rating_score( cls ):
+        return case(
+            [
+                (True, cls.rating_avg * cls.number_of_ratings),
+            ],
+            else_=0,
+        )
+
     def get_all_rating( self ):
         return self.get_all_rating_q().all()
 
@@ -288,7 +321,7 @@ class Content( db.Model ):
         
     def get_ranking(self):
         ut = aliased(Content)
-        return db.session.query(func.count(ut.content_id)).filter(ut.avg_score > self.avg_score).one_or_none()[0] + 1
+        return db.session.query(func.count(ut.content_id)).filter(ut.rating_score > self.rating_score).one_or_none()[0] + 1
         
     def get_total_rating( self ):
         return { 'score': self.avg_score, 'count': self.rating_count(), 'ranking': self.get_ranking() }

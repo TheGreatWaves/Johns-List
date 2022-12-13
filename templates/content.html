@@ -114,17 +114,22 @@
 
         <!-- Edit content page -->
         <div class="col-md-1 text-end" style="margin: auto;">
+            <center>
             <form action="" method="POST">
                 <button class="btn edit" type="submit">Edit</button>
             </form>
+            </center>
         </div>
 
         <!-- Edit rating modal -->
-        <a class="btn nice" style="width: 12%; margin:auto; height:5%"
-            href="{{ url_for('set_rating_modal', content_id=content.content_id, content_type=content.content_type) }}"
-            role="button">
-            Set Rating
-        </a>
+        <div class="col-md-1 text-end" style="top: 6px; ">
+        <center>
+            <form action="{{ url_for('set_rating_modal', content_id=content.content_id, content_type=content.content_type) }}"
+                 method="GET">
+                <button class="btn edit" type="submit">Set Rating</button>
+            </form>
+        </center>
+        </div>
     </div>
 </div>
 {% endblock %}
