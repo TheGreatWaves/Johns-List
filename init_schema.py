@@ -285,7 +285,8 @@ class Content( db.Model ):
 
     @hybrid_property
     def rating_avg( self ):
-        return Rating.query.with_entities(func.avg(Rating.content_rating).label('avg_rating')).filter(Rating.content_id == self.content_id).one_or_none().avg_rating
+        avg = Rating.query.with_entities(func.avg(Rating.content_rating).label('avg_rating')).filter(Rating.content_id == self.content_id).one_or_none().avg_rating
+        return avg if avg else 0.00
      
     @rating_avg.expression
     def rating_avg( cls ):
