@@ -5,6 +5,7 @@
 
 <style>
     p,
+    b,
     h1,
     h2,
     h3 {
@@ -100,6 +101,12 @@
             <a class="btn nice" style="width: 100%; height: 25px; line-height: 10px;" href="{{ url_for('list', owner='user', owner_name=user.username, list_name=user.lists[1].name) }}" role="button">Completed List</a>
         </div>
     </div>
+
+    <div class="well default-text-color">
+        <hr>
+        <b>Joined</b>: {{ user.registered_date }}
+    </div>
+   
 </div>
 
 <!-- Right column -->

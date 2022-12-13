@@ -6,7 +6,7 @@ Add and implement entry points here (We could move them out later if desired.)
 # Flask
 from flask import Flask, render_template, request, redirect, flash, session, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.sql.expression import func
+from sqlalchemy.sql.expression import func, desc
 import random
 import logging
 
@@ -57,11 +57,17 @@ def whoami():
         return None
     return User.query.filter_by(user_id=session['uid']).first()
 
-def is_user(user_name):
+def is_user(uid):
     if not logged_in():
         return False
     
-    return whoami_username() == user_name
+    return whoami_id() == uid
+
+def set_login(user):
+    session['login'] = True
+    session['username'] = user.username
+    session['uid'] = user.user_id
+
 
 # https://stackoverflow.com/questions/49245479/how-to-display-a-list-across-multiple-pages-in-flask
 class SearchResult:
@@ -112,7 +118,12 @@ class SearchResult:
 @app.route("/")
 def index():
     contents = Content.query.filter(Content.poster != None).order_by(func.random()).limit(6)
-    return render_template("index.html", contents = contents)
+
+    top_contents = Content.query.filter( Content.poster != None ).order_by( desc(Content.rating_score) ).limit(6)
+
+    popular_contents = Content.query.filter( Content.poster != None ).order_by( desc(Content.number_of_ratings) ).limit(6)
+
+    return render_template("index.html", contents=contents, top_contents=top_contents, popular_contents=popular_contents)
 
 # About page
 @app.route("/about/")
@@ -304,19 +315,20 @@ def edit_user(username):
         new_password = form['new_password']
         confirm_password = form['confirm_password']
 
+        print('NEW USERNAME: ', new_username)
             
         if new_user_pfp == "":
             new_user_pfp = url_for('static', filename='place_holder_img.png')
         
         # existing username
-        existing_name = User.query.filter(User.name == username).first()
+        existing_name = User.query.filter(User.username == username).first()
 
         error = False
 
         if new_username  == "":
             flash( 'Username cannot be empty', 'danger' )
             error = True
-        elif existing_name and existing_name.name != username:
+        elif existing_name and existing_name.username != username:
             flash('This name has already been taken', 'danger')
             error = True
         
@@ -337,7 +349,12 @@ def edit_user(username):
             return redirect(url_for( 'edit_user', username=username))
         
         # Update user info
-        user.name = new_username
+        user.username = new_username
+
+
+        if is_user(user.user_id):
+            set_login(user)
+
         user.profile_pic_url = new_user_pfp
         user.bio = new_user_bio
         if new_password:
@@ -346,9 +363,9 @@ def edit_user(username):
             
         # Success message
         flash('User Info edited successfully', 'success')
-        return redirect(url_for('user', username=username))
+        return redirect( url_for('user', username=user.username) )
 
-    return render_template('user.html', user=user, groups=user_groups, is_owner=is_owner)
+    return redirect( url_for('user', username=username) )
 
 @app.route('/create_group/', methods=['GET', 'POST'])
 def create_group():
